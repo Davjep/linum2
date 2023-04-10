@@ -1,0 +1,16 @@
+"makefile.configurations": [
+
+    {
+
+        "name": "MyConfiguration",
+
+        "problemMatchers": [
+
+            "$gcc"
+
+        ],
+
+        "makeArgs": ["any", "other", "args", "you", "want"]
+
+    },
+]
