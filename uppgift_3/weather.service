@@ -1,7 +1,7 @@
 [Unit]
 Description=Daily weather report
-After=default.target
-After=network.target
+After=network-online.target
+Wants=network-after.target
 
 [Service]
 Type=oneshot
