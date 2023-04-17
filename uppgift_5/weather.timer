@@ -1,0 +1,11 @@
+[Unit]
+Description=Kör weather.service en gång i timmen
+
+[Timer]
+Persistent=true
+OnBootSec=1h
+OnUnitActiveSec=1h
+Unit=weather.service
+
+[Install]
+WantedBy=timers.target
