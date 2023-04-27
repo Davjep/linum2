@@ -21,7 +21,10 @@
   },
   "files.associations": {
     "pam_misc.h": "c",
-    "_pam_compat.h": "c"
+    "_pam_compat.h": "c",
+    "libcomponent.h": "c",
+    "libpower.h": "c",
+    "libresistance.h": "c"
   },
   "sonarlint.pathToCompileCommands": "${workspaceFolder}/build/compile_commands.json"
 }
