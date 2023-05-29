@@ -1,0 +1,87 @@
+\hypertarget{libpower_8h}{}\doxysection{libpower.\+h File Reference}
+\label{libpower_8h}\index{libpower.h@{libpower.h}}
+
+
+Huvudfil som innehåller deklarationen av funktionerna i libpower-\/biblioteket.  
+
+
+This graph shows which files directly or indirectly include this file\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=147pt]{libpower_8h__dep__incl}
+\end{center}
+\end{figure}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+float \mbox{\hyperlink{libpower_8h_a258ea62d537e52d8a3205f461c01f7b5}{f\+Calc\+PowerR}} (float f\+Volt, float f\+Resistance)
+\begin{DoxyCompactList}\small\item\em Beräknar effekten i en resistor baserat på spänning och resistans. Denna funktion beräknar effekten (i watt) i en resistor baserat på angiven spänning och resistans. Resultatet returneras som en flyttalsvärde. \end{DoxyCompactList}\item 
+float \mbox{\hyperlink{libpower_8h_a5f1ddcaaf39bfe4e69c5b5ab50213cdf}{f\+Calc\+PowerI}} (float f\+Volt, float f\+Current)
+\begin{DoxyCompactList}\small\item\em Beräknar effekten i en resistor baserat på spänning och ström. Denna funktion beräknar effekten (i watt) i en resistor baserat på angiven spänning och ström. Resultatet returneras som en flyttalsvärde. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Huvudfil som innehåller deklarationen av funktionerna i libpower-\/biblioteket. 
+
+\begin{DoxyAuthor}{Author}
+Sven Rönnbäck 
+\end{DoxyAuthor}
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{libpower_8h_a5f1ddcaaf39bfe4e69c5b5ab50213cdf}\label{libpower_8h_a5f1ddcaaf39bfe4e69c5b5ab50213cdf}} 
+\index{libpower.h@{libpower.h}!fCalcPowerI@{fCalcPowerI}}
+\index{fCalcPowerI@{fCalcPowerI}!libpower.h@{libpower.h}}
+\doxysubsubsection{\texorpdfstring{fCalcPowerI()}{fCalcPowerI()}}
+{\footnotesize\ttfamily float f\+Calc\+PowerI (\begin{DoxyParamCaption}\item[{float}]{f\+Volt,  }\item[{float}]{f\+Current }\end{DoxyParamCaption})}
+
+
+
+Beräknar effekten i en resistor baserat på spänning och ström. Denna funktion beräknar effekten (i watt) i en resistor baserat på angiven spänning och ström. Resultatet returneras som en flyttalsvärde. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em f\+Volt} & Spänningen över resistorn (i volt). \\
+\hline
+{\em f\+Current} & Strömmen genom resistorn (i ampere). \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Effekten (i watt) i resistorn. 
+\end{DoxyReturn}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=231pt]{libpower_8h_a5f1ddcaaf39bfe4e69c5b5ab50213cdf_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{libpower_8h_a258ea62d537e52d8a3205f461c01f7b5}\label{libpower_8h_a258ea62d537e52d8a3205f461c01f7b5}} 
+\index{libpower.h@{libpower.h}!fCalcPowerR@{fCalcPowerR}}
+\index{fCalcPowerR@{fCalcPowerR}!libpower.h@{libpower.h}}
+\doxysubsubsection{\texorpdfstring{fCalcPowerR()}{fCalcPowerR()}}
+{\footnotesize\ttfamily float f\+Calc\+PowerR (\begin{DoxyParamCaption}\item[{float}]{f\+Volt,  }\item[{float}]{f\+Resistance }\end{DoxyParamCaption})}
+
+
+
+Beräknar effekten i en resistor baserat på spänning och resistans. Denna funktion beräknar effekten (i watt) i en resistor baserat på angiven spänning och resistans. Resultatet returneras som en flyttalsvärde. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em f\+Volt} & Spänningen över resistorn (i volt). \\
+\hline
+{\em f\+Resistance} & Resistansen hos resistorn (i ohm). \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Effekten (i watt) i resistorn. 
+\end{DoxyReturn}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=235pt]{libpower_8h_a258ea62d537e52d8a3205f461c01f7b5_icgraph}
+\end{center}
+\end{figure}

@@ -1,0 +1,60 @@
+\hypertarget{libcomponent_8h}{}\doxysection{libcomponent.\+h File Reference}
+\label{libcomponent_8h}\index{libcomponent.h@{libcomponent.h}}
+
+
+Huvudfil som innehåller deklarationen av funktionerna i libcomponent-\/biblioteket.  
+
+
+This graph shows which files directly or indirectly include this file\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=172pt]{libcomponent_8h__dep__incl}
+\end{center}
+\end{figure}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+int \mbox{\hyperlink{libcomponent_8h_a5027102650501c9dad53023496c2885e}{n\+Find\+E12resistances}} (float f\+Orig\+Resistance, int n\+Max\+Resistances, float $\ast$pf\+Res\+Array)
+\begin{DoxyCompactList}\small\item\em Hittar E12-\/serieresistanser närmast det givna ursprungliga resistansvärdet. Denna funktion beräknar E12-\/serieresistanser som är närmast det givna ursprungliga resistansvärdet och lagrar dem i den tillhandahållna arrayen. Antalet resistanser att hitta begränsas av det specificerade maximala antalet resistanser. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Huvudfil som innehåller deklarationen av funktionerna i libcomponent-\/biblioteket. 
+
+\begin{DoxyAuthor}{Author}
+Sven Rönnbäck 
+\end{DoxyAuthor}
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{libcomponent_8h_a5027102650501c9dad53023496c2885e}\label{libcomponent_8h_a5027102650501c9dad53023496c2885e}} 
+\index{libcomponent.h@{libcomponent.h}!nFindE12resistances@{nFindE12resistances}}
+\index{nFindE12resistances@{nFindE12resistances}!libcomponent.h@{libcomponent.h}}
+\doxysubsubsection{\texorpdfstring{nFindE12resistances()}{nFindE12resistances()}}
+{\footnotesize\ttfamily int n\+Find\+E12resistances (\begin{DoxyParamCaption}\item[{float}]{f\+Orig\+Resistance,  }\item[{int}]{n\+Max\+Resistances,  }\item[{float $\ast$}]{pf\+Res\+Array }\end{DoxyParamCaption})}
+
+
+
+Hittar E12-\/serieresistanser närmast det givna ursprungliga resistansvärdet. Denna funktion beräknar E12-\/serieresistanser som är närmast det givna ursprungliga resistansvärdet och lagrar dem i den tillhandahållna arrayen. Antalet resistanser att hitta begränsas av det specificerade maximala antalet resistanser. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em f\+Orig\+Resistance} & Det ursprungliga resistansvärdet för vilket de närmaste E12-\/serieresistanserna ska hittas. \\
+\hline
+{\em n\+Max\+Resistances} & Det maximala antalet E12-\/serieresistanser som ska hittas. \\
+\hline
+{\em pf\+Res\+Array} & En pekare till arrayen där de hittade E12-\/serieresistanserna kommer att lagras. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Det faktiska antalet E12-\/serieresistanser som hittades och lagrades i den tillhandahållna arrayen. 
+\end{DoxyReturn}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=273pt]{libcomponent_8h_a5027102650501c9dad53023496c2885e_icgraph}
+\end{center}
+\end{figure}

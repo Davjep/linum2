@@ -1,0 +1,62 @@
+\hypertarget{libresistance_8h}{}\doxysection{libresistance.\+h File Reference}
+\label{libresistance_8h}\index{libresistance.h@{libresistance.h}}
+
+
+Huvudfil som innehåller deklarationen av funktionerna i libresistance-\/biblioteket.  
+
+
+This graph shows which files directly or indirectly include this file\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=168pt]{libresistance_8h__dep__incl}
+\end{center}
+\end{figure}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+float \mbox{\hyperlink{libresistance_8h_ab9d4993a588022b356bde272db17f0f0}{f\+Calc\+Resistance}} (char c\+Type, unsigned int u\+Count, float $\ast$pf\+Array)
+\begin{DoxyCompactList}\small\item\em Beräknar den totala resistansen för en kombination av resistorer. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Huvudfil som innehåller deklarationen av funktionerna i libresistance-\/biblioteket. 
+
+\begin{DoxyAuthor}{Author}
+Sven Rönnbäck 
+\end{DoxyAuthor}
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{libresistance_8h_ab9d4993a588022b356bde272db17f0f0}\label{libresistance_8h_ab9d4993a588022b356bde272db17f0f0}} 
+\index{libresistance.h@{libresistance.h}!fCalcResistance@{fCalcResistance}}
+\index{fCalcResistance@{fCalcResistance}!libresistance.h@{libresistance.h}}
+\doxysubsubsection{\texorpdfstring{fCalcResistance()}{fCalcResistance()}}
+{\footnotesize\ttfamily float f\+Calc\+Resistance (\begin{DoxyParamCaption}\item[{char}]{c\+Type,  }\item[{unsigned int}]{u\+Count,  }\item[{float $\ast$}]{pf\+Array }\end{DoxyParamCaption})}
+
+
+
+Beräknar den totala resistansen för en kombination av resistorer. 
+
+Denna funktion beräknar den totala resistansen för en kombination av resistorer beroende på resistorernas typ, antal och värden. Resultatet returneras som en flyttalsvärde.
+
+
+\begin{DoxyParams}{Parameters}
+{\em c\+Type} & Typen av resistorer (seriekopplade eller parallellkopplade). \\
+\hline
+{\em u\+Count} & Antalet resistorer i kombinationen. \\
+\hline
+{\em pf\+Array} & En pekare till arrayen som innehåller resistansvärdena.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Den totala resistansen för kombinationen av resistorer. 
+\end{DoxyReturn}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=252pt]{libresistance_8h_ab9d4993a588022b356bde272db17f0f0_icgraph}
+\end{center}
+\end{figure}

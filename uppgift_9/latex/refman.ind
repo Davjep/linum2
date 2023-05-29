@@ -1,0 +1,32 @@
+\begin{theindex}
+
+  \item {fCalcPowerI}
+    \subitem {libpower.h}, \hyperpage{5}
+  \item {fCalcPowerR}
+    \subitem {libpower.h}, \hyperpage{6}
+  \item {fCalcResistance}
+    \subitem {libresistance.h}, \hyperpage{7}
+
+  \indexspace
+
+  \item {libcomponent.h}, \hyperpage{3}
+    \subitem {nFindE12resistances}, \hyperpage{4}
+  \item {libpower.h}, \hyperpage{4}
+    \subitem {fCalcPowerI}, \hyperpage{5}
+    \subitem {fCalcPowerR}, \hyperpage{6}
+  \item {libresistance.h}, \hyperpage{6}
+    \subitem {fCalcResistance}, \hyperpage{7}
+
+  \indexspace
+
+  \item {main}
+    \subitem {main.c}, \hyperpage{9}
+  \item {main.c}, \hyperpage{8}
+    \subitem {main}, \hyperpage{9}
+
+  \indexspace
+
+  \item {nFindE12resistances}
+    \subitem {libcomponent.h}, \hyperpage{4}
+
+\end{theindex}

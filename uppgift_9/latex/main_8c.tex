@@ -1,0 +1,62 @@
+\hypertarget{main_8c}{}\doxysection{main.\+c File Reference}
+\label{main_8c}\index{main.c@{main.c}}
+
+
+Programfil som innehåller programmets huvudfunktion.  
+
+
+{\ttfamily \#include \char`\"{}libcomponent.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}libpower.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}libresistance.\+h\char`\"{}}\newline
+{\ttfamily \#include $<$math.\+h$>$}\newline
+{\ttfamily \#include $<$stdio.\+h$>$}\newline
+{\ttfamily \#include $<$stdlib.\+h$>$}\newline
+{\ttfamily \#include $<$string.\+h$>$}\newline
+Include dependency graph for main.\+c\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{main_8c__incl}
+\end{center}
+\end{figure}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{main_8c_a130feaabe801589cd5595429beef4393}{main}} (int n\+Argv, char $\ast$pvc\+Argc\mbox{[}$\,$\mbox{]})
+\begin{DoxyCompactList}\small\item\em Huvudfunktionen för programmet. Huvudfunktionen används för att köra programmet och beräkna resistansvärden baserat på användarens argument. Programmet tar emot två argument\+: $<$värde$>$ och $<$resistorer$>$. Om inga argument anges används standardvärdena 2020.\+0f för $<$värde$>$ och 3 för $<$resistorer$>$. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Programfil som innehåller programmets huvudfunktion. 
+
+\begin{DoxyAuthor}{Author}
+Sven Rönnbäck 
+\end{DoxyAuthor}
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{main_8c_a130feaabe801589cd5595429beef4393}\label{main_8c_a130feaabe801589cd5595429beef4393}} 
+\index{main.c@{main.c}!main@{main}}
+\index{main@{main}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily void main (\begin{DoxyParamCaption}\item[{int}]{n\+Argv,  }\item[{char $\ast$}]{pvc\+Argc\mbox{[}$\,$\mbox{]} }\end{DoxyParamCaption})}
+
+
+
+Huvudfunktionen för programmet. Huvudfunktionen används för att köra programmet och beräkna resistansvärden baserat på användarens argument. Programmet tar emot två argument\+: $<$värde$>$ och $<$resistorer$>$. Om inga argument anges används standardvärdena 2020.\+0f för $<$värde$>$ och 3 för $<$resistorer$>$. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em n\+Argv} & Antalet argument som skickas till programmet. \\
+\hline
+{\em pvc\+Argc} & En array av strängar som representerar de argument som skickas till programmet. \\
+\hline
+\end{DoxyParams}
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=273pt]{main_8c_a130feaabe801589cd5595429beef4393_cgraph}
+\end{center}
+\end{figure}

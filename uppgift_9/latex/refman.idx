@@ -1,0 +1,14 @@
+\indexentry{libcomponent.h@{libcomponent.h}|hyperpage}{3}
+\indexentry{libcomponent.h@{libcomponent.h}!nFindE12resistances@{nFindE12resistances}|hyperpage}{4}
+\indexentry{nFindE12resistances@{nFindE12resistances}!libcomponent.h@{libcomponent.h}|hyperpage}{4}
+\indexentry{libpower.h@{libpower.h}|hyperpage}{4}
+\indexentry{libpower.h@{libpower.h}!fCalcPowerI@{fCalcPowerI}|hyperpage}{5}
+\indexentry{fCalcPowerI@{fCalcPowerI}!libpower.h@{libpower.h}|hyperpage}{5}
+\indexentry{libpower.h@{libpower.h}!fCalcPowerR@{fCalcPowerR}|hyperpage}{6}
+\indexentry{fCalcPowerR@{fCalcPowerR}!libpower.h@{libpower.h}|hyperpage}{6}
+\indexentry{libresistance.h@{libresistance.h}|hyperpage}{6}
+\indexentry{libresistance.h@{libresistance.h}!fCalcResistance@{fCalcResistance}|hyperpage}{7}
+\indexentry{fCalcResistance@{fCalcResistance}!libresistance.h@{libresistance.h}|hyperpage}{7}
+\indexentry{main.c@{main.c}|hyperpage}{8}
+\indexentry{main.c@{main.c}!main@{main}|hyperpage}{9}
+\indexentry{main@{main}!main.c@{main.c}|hyperpage}{9}

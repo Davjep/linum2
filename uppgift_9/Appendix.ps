@@ -1,0 +1,4601 @@
+%!PS-Adobe-3.0
+%%Title: Doxyfile, libcomponent.c, libpower.c, libresistance.c, main.c, libcomponent.h, libpower.h, libresistance.h
+%%For: Davjep
+%%Creator: a2ps version 4.14
+%%CreationDate: Mon May 29 10:50:06 2023
+%%BoundingBox: 24 24 571 818
+%%DocumentData: Clean7Bit
+%%Orientation: Landscape
+%%Pages: 29
+%%PageOrder: Ascend
+%%DocumentMedia: A4 595 842 0 () ()
+%%DocumentNeededResources: font Courier
+%%+ font Courier-Bold
+%%+ font Courier-BoldOblique
+%%+ font Courier-Oblique
+%%+ font Helvetica
+%%+ font Helvetica-Bold
+%%+ font Symbol
+%%+ font Times-Bold
+%%+ font Times-Roman
+%%DocumentProcessColors: Black 
+%%DocumentSuppliedResources: procset a2ps-a2ps-hdr
+%%+ procset a2ps-black+white-Prolog
+%%+ encoding ISO-8859-1Encoding
+%%EndComments
+/a2psdict 200 dict def
+a2psdict begin
+%%BeginProlog
+%%Copyright: (c) 1988, 89, 90, 91, 92, 93 Miguel Santana
+%%Copyright: (c) 1995, 96, 97, 98 Akim Demaille, Miguel Santana
+% Check PostScript language level.
+/languagelevel where {
+  pop /gs_languagelevel languagelevel def
+} {
+  /gs_languagelevel 1 def
+} ifelse
+
+% EPSF import as in the Red Book
+/BeginInclude {
+  /b4_Inc_state save def    		% Save state for cleanup
+  /dict_count countdictstack def	% Count objects on dict stack
+  /op_count count 1 sub def		% Count objects on operand stack 
+  userdict begin
+    0 setgray 0 setlinecap
+    1 setlinewidth 0 setlinejoin
+    10 setmiterlimit [ ] 0 setdash newpath
+    gs_languagelevel 1 ne {
+      false setstrokeadjust false setoverprint 
+    } if
+} bind def
+
+/EndInclude {
+  count op_count sub { pos } repeat	% Clean up stacks
+  countdictstack dict_count sub { end } repeat
+  b4_Inc_state restore
+} bind def
+
+/BeginEPSF {
+  BeginInclude
+  /showpage { } def
+} bind def
+
+/EndEPSF {
+  EndInclude
+} bind def
+
+% Page prefeed
+/page_prefeed {         % bool -> -
+  statusdict /prefeed known {
+    statusdict exch /prefeed exch put
+  } {
+    pop
+  } ifelse
+} bind def
+
+/deffont {
+  findfont exch scalefont def
+} bind def
+
+/reencode_font {
+  findfont reencode 2 copy definefont pop def
+} bind def
+
+% Function c-show (str => -)
+% centers text only according to x axis.
+/c-show { 
+  dup stringwidth pop
+  2 div neg 0 rmoveto
+  show
+} bind def
+
+% Function l-show (str => -)
+% prints texts so that it ends at currentpoint
+/l-show {
+  dup stringwidth pop neg 
+  0 
+  rmoveto show
+} bind def
+
+% center-fit show (str w => -)
+% show centered, and scale currentfont so that the width is less than w
+/cfshow {
+  exch dup stringwidth pop
+  % If the title is too big, try to make it smaller
+  3 2 roll 2 copy
+  gt
+  { % if, i.e. too big
+    exch div
+    currentfont exch scalefont setfont
+  } { % ifelse
+    pop pop 
+  }
+  ifelse
+  c-show			% center title
+} bind def
+
+% Return the y size of the current font
+% - => fontsize
+/currentfontsize {
+  currentfont /FontType get 0 eq {
+    currentfont /FontMatrix get 3 get
+  }{
+    currentfont /FontMatrix get 3 get 1000 mul
+  } ifelse
+} bind def
+
+% reencode the font
+% <encoding-vector> <fontdict> -> <newfontdict>
+/reencode { %def
+  dup length 5 add dict begin
+    { %forall
+      % <vector> <key> <val>
+      1 index /FID ne 
+      { def }{ pop pop } ifelse
+    } forall
+    /Encoding exch def % -
+
+    % Use the font's bounding box to determine the ascent, descent,
+    % and overall height; don't forget that these values have to be
+    % transformed using the font's matrix.
+    % We use `load' because sometimes BBox is executable, sometimes not.
+    % Since we need 4 numbers an not an array avoid BBox from being executed
+    /FontBBox load aload pop
+    FontMatrix transform /Ascent exch def pop
+    FontMatrix transform /Descent exch def pop
+    /FontHeight Ascent Descent sub def
+
+    % Get the underline position and thickness if they're defined.
+    % Use 1 if they are not defined.
+    currentdict /FontInfo 2 copy known
+    { get
+      /UnderlinePosition 2 copy % <FontInfo> /UP <FontInfo> /UP
+      2 copy known
+      { get }{ pop pop 1 } ifelse
+      0 exch FontMatrix transform exch pop
+      def % <FontInfo>
+
+      /UnderlineThickness 2 copy % <FontInfo> /UT <FontInfo> /UT
+      2 copy known
+      { get }{ pop pop 1 } ifelse
+      0 exch FontMatrix transform exch pop
+      def % <FontInfo>
+      pop % -
+    }{ pop pop
+    } ifelse
+
+    currentdict
+  end 
+} bind def
+
+% composite fonts for ASCII-EUC mixed strings
+% Version 1.2 1/31/1990
+% Original Ken'ichi HANDA (handa@etl.go.jp)
+% Modified Norio Katayama (katayama@rd.nacsis.ac.jp),1998
+% Extend & Fix Koji Nakamaru (maru@on.cs.keio.ac.jp), 1999
+% Anyone can freely copy, modify, distribute this program.
+
+/copyfont {	% font-dic extra-entry-count  copyfont  font-dic
+	1 index maxlength add dict begin
+	{	1 index /FID ne 2 index /UniqueID ne and
+		{def} {pop pop} ifelse
+	} forall
+	currentdict
+	end
+} bind def
+
+/compositefont { % ASCIIFontName EUCFontName RomanScale RomanOffset Rot(T/F) compositefont font
+    /RomanRotation exch def
+    /RomanOffset exch def
+    /RomanScale exch def
+    userdict /fixeucfont_dict known not {
+	userdict begin
+	    /fixeucfont_dict 2 dict begin
+		/UpperByteEncoding [
+		    16#00 1 16#20 { pop 0 } for
+		    16#21 1 16#28 { 16#20 sub } for
+		    16#29 1 16#2F { pop 0 } for
+		    16#30 1 16#74 { 16#27 sub } for
+		    16#75 1 16#FF { pop 0 } for
+		] def
+	        /LowerByteEncoding [
+		    16#00 1 16#A0 { pop /.notdef } for
+		    16#A1 1 16#FE { 16#80 sub 16 2 string cvrs
+				    (cXX) dup 1 4 -1 roll
+				    putinterval cvn } for
+		    /.notdef
+		] def
+		currentdict
+	    end def
+	end
+    } if
+    findfont dup /FontType get 0 eq {
+	14 dict begin
+	    %
+	    % 7+8 bit EUC font
+	    %
+	    12 dict begin
+		/EUCFont exch def
+		/FontInfo (7+8 bit EUC font) readonly def
+		/PaintType 0 def
+		/FontType 0 def
+		/FontMatrix matrix def
+		% /FontName
+		/Encoding fixeucfont_dict /UpperByteEncoding get def
+		/FMapType 2 def
+		EUCFont /WMode known
+		{ EUCFont /WMode get /WMode exch def }
+		{ /WMode 0 def } ifelse
+		/FDepVector [
+		    EUCFont /FDepVector get 0 get
+		    [ 16#21 1 16#28 {} for 16#30 1 16#74 {} for ]
+		    {
+			13 dict begin
+			    /EUCFont EUCFont def
+			    /UpperByte exch 16#80 add def	
+			    % /FontName
+			    /FontInfo (EUC lower byte font) readonly def
+			    /PaintType 0 def
+			    /FontType 3 def
+			    /FontMatrix matrix def
+			    /FontBBox {0 0 0 0} def
+			    /Encoding
+				fixeucfont_dict /LowerByteEncoding get def
+			    % /UniqueID
+			    % /WMode
+			    /BuildChar {
+				gsave
+				exch dup /EUCFont get setfont
+				/UpperByte get
+				2 string
+				dup 0 4 -1 roll put
+				dup 1 4 -1 roll put
+				dup stringwidth setcharwidth
+				0 0 moveto show
+				grestore
+			    } bind def
+			    currentdict
+			end
+			/lowerbytefont exch definefont
+		    } forall
+		] def
+		currentdict
+	    end
+	    /eucfont exch definefont
+	    exch
+	    findfont 1 copyfont dup begin
+		RomanRotation {
+			/FontMatrix FontMatrix
+			[ 0 RomanScale neg RomanScale 0 RomanOffset neg 0 ]
+			matrix concatmatrix def
+		}{
+			/FontMatrix FontMatrix
+			[ RomanScale 0 0 RomanScale 0 RomanOffset ] matrix concatmatrix
+			def
+			/CDevProc
+			    {pop pop pop pop 0 exch -1000 exch 2 div 880} def
+		} ifelse
+	    end
+	    /asciifont exch definefont
+	    exch
+	    /FDepVector [ 4 2 roll ] def
+	    /FontType 0 def
+	    /WMode 0 def
+	    /FMapType 4 def
+	    /FontMatrix matrix def
+	    /Encoding [0 1] def
+	    /FontBBox {0 0 0 0} def
+%	    /FontHeight 1.0 def % XXXX
+	    /FontHeight RomanScale 1.0 ge { RomanScale }{ 1.0 } ifelse def
+	    /Descent -0.3 def   % XXXX
+	    currentdict
+	end
+	/tmpfont exch definefont
+	pop
+	/tmpfont findfont
+    }{
+	pop findfont 0 copyfont
+    } ifelse
+} def	
+
+/slantfont {	% FontName slant-degree  slantfont  font'
+    exch findfont 1 copyfont begin
+    [ 1 0 4 -1 roll 1 0 0 ] FontMatrix exch matrix concatmatrix
+    /FontMatrix exch def
+    currentdict
+    end
+} def
+
+% Function print line number (<string> # -)
+/# {
+  gsave
+    sx cw mul neg 2 div 0 rmoveto
+    f# setfont
+    c-show
+  grestore
+} bind def
+
+% -------- Some routines to enlight plain b/w printings ---------
+
+% Underline
+% width --
+/dounderline {
+  currentpoint
+  gsave
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    0 rlineto
+    stroke
+  grestore
+} bind def
+
+% Underline a string
+% string --
+/dounderlinestring {
+  stringwidth pop
+  dounderline
+} bind def
+
+/UL {
+  /ul exch store
+} bind def
+
+% Draw a box of WIDTH wrt current font
+% width --
+/dobox {
+  currentpoint
+  gsave
+    newpath
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    dup 0 rlineto
+    0 currentfont /FontHeight get currentfontsize mul rlineto
+    neg 0 rlineto
+    closepath
+    stroke
+  grestore
+} bind def
+
+/BX {
+  /bx exch store
+} bind def
+
+% Box a string
+% string --
+/doboxstring {
+  stringwidth pop
+  dobox
+} bind def
+
+%
+% ------------- Color routines ---------------
+%
+/FG /setrgbcolor load def
+
+% Draw the background
+% width --
+/dobackground {
+  currentpoint
+  gsave
+    newpath
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    dup 0 rlineto
+    0 currentfont /FontHeight get currentfontsize mul rlineto
+    neg 0 rlineto
+    closepath
+    bgcolor aload pop setrgbcolor
+    fill
+  grestore
+} bind def
+
+% Draw bg for a string
+% string --
+/dobackgroundstring {
+  stringwidth pop
+  dobackground
+} bind def
+
+
+/BG {
+  dup /bg exch store
+  { mark 4 1 roll ] /bgcolor exch store } if
+} bind def
+
+
+/Show {
+  bg { dup dobackgroundstring } if
+  ul { dup dounderlinestring } if
+  bx { dup doboxstring } if
+  show
+} bind def
+
+% Function T(ab), jumps to the n-th tabulation in the current line
+/T {
+  cw mul x0 add
+  bg { dup currentpoint pop sub dobackground } if
+  ul { dup currentpoint pop sub dounderline } if
+  bx { dup currentpoint pop sub dobox } if
+  y0 moveto
+} bind def
+
+% Function n: move to the next line
+/n {
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+% Function N: show and move to the next line
+/N {
+  Show
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+/S {
+  Show
+} bind def
+
+%%BeginResource: procset a2ps-a2ps-hdr 2.0 2
+%%Copyright: (c) 1988, 89, 90, 91, 92, 93 Miguel Santana
+%%Copyright: (c) 1995, 96, 97, 98 Akim Demaille, Miguel Santana
+% Function title: prints page header.
+% <ct> <rt> <lt> are passed as argument
+/title { 
+  % 1. Draw the background
+  x v get y v get moveto
+  gsave
+    0 th 2 div neg rmoveto 
+    th setlinewidth
+    0.95 setgray
+    pw 0 rlineto stroke
+  grestore
+  % 2. Border it
+  gsave
+    0.7 setlinewidth
+    pw 0 rlineto
+    0 th neg rlineto
+    pw neg 0 rlineto
+    closepath stroke
+  grestore
+  % stk: ct rt lt
+  x v get y v get th sub 1 add moveto
+%%IncludeResource: font Helvetica
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  % 3. The left title
+  gsave
+    dup stringwidth pop fnfs 0.8 mul add exch % leave space took on stack
+    fnfs 0.8 mul hm rmoveto
+    show			% left title
+  grestore
+  exch
+  % stk: ct ltw rt
+  % 4. the right title
+  gsave
+    dup stringwidth pop fnfs 0.8 mul add exch % leave space took on stack
+    dup
+    pw exch stringwidth pop fnfs 0.8 mul add sub
+    hm
+    rmoveto
+    show			% right title
+  grestore
+  % stk: ct ltw rtw
+  % 5. the center title
+  gsave
+    pw 3 1 roll
+    % stk: ct pw ltw rtw
+    3 copy 
+    % Move to the center of the left room
+    sub add 2 div hm rmoveto
+    % What is the available space in here?
+    add sub fnfs 0.8 mul sub fnfs 0.8 mul sub
+    % stk: ct space_left
+%%IncludeResource: font Helvetica-Bold
+  fHelvetica-Bold fnfs scalefont setfont
+    cfshow
+  grestore
+} bind def
+
+% Function border: prints virtual page border
+/border { %def
+  gsave				% print four sides
+    0 setgray
+    x v get y v get moveto
+    0.7 setlinewidth		% of the square
+    pw 0 rlineto
+    0 ph neg rlineto
+    pw neg 0 rlineto
+    closepath stroke
+  grestore
+} bind def
+
+% Function water: prints a water mark in background
+/water { %def
+  gsave
+    scx scy moveto rotate
+%%IncludeResource: font Times-Bold
+  fTimes-Bold 100 scalefont setfont
+    .97 setgray
+    dup stringwidth pop 2 div neg -50 rmoveto
+    show
+  grestore
+} bind def
+
+% Function rhead: prints the right header
+/rhead {  %def
+  lx ly moveto
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  l-show
+} bind def
+
+% Function footer (cf rf lf -> -)
+/footer {
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  dx dy moveto
+  show
+
+  snx sny moveto
+  l-show
+  
+  fnx fny moveto
+  c-show
+} bind def
+%%EndResource
+%%BeginResource: procset a2ps-black+white-Prolog 2.0 1
+
+% Function T(ab), jumps to the n-th tabulation in the current line
+/T { 
+  cw mul x0 add y0 moveto
+} bind def
+
+% Function n: move to the next line
+/n { %def
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+% Function N: show and move to the next line
+/N {
+  Show
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+}  bind def
+
+/S {
+  Show
+} bind def
+
+/p {
+  false UL
+  false BX
+  fCourier bfs scalefont setfont
+  Show
+} bind def
+
+/sy {
+  false UL
+  false BX
+  fSymbol bfs scalefont setfont
+  Show
+} bind def
+
+/k {
+  false UL
+  false BX
+  fCourier-Oblique bfs scalefont setfont
+  Show
+} bind def
+
+/K {
+  false UL
+  false BX
+  fCourier-Bold bfs scalefont setfont
+  Show
+} bind def
+
+/c {
+  false UL
+  false BX
+  fCourier-Oblique bfs scalefont setfont
+  Show
+} bind def
+
+/C {
+  false UL
+  false BX
+  fCourier-BoldOblique bfs scalefont setfont
+  Show 
+} bind def
+
+/l {
+  false UL
+  false BX
+  fHelvetica bfs scalefont setfont
+  Show
+} bind def
+
+/L {
+  false UL
+  false BX
+  fHelvetica-Bold bfs scalefont setfont
+  Show 
+} bind def
+
+/str{
+  false UL
+  false BX
+  fTimes-Roman bfs scalefont setfont
+  Show
+} bind def
+
+/e{
+  false UL
+  true BX
+  fHelvetica-Bold bfs scalefont setfont
+  Show
+} bind def
+
+%%EndResource
+%%EndProlog
+%%BeginSetup
+%%IncludeResource: font Courier
+%%IncludeResource: font Courier-Oblique
+%%IncludeResource: font Courier-Bold
+%%IncludeResource: font Times-Roman
+%%IncludeResource: font Symbol
+%%IncludeResource: font Courier-BoldOblique
+%%BeginResource: encoding ISO-8859-1Encoding
+/ISO-8859-1Encoding [
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/space /exclam /quotedbl /numbersign /dollar /percent /ampersand /quoteright 
+/parenleft /parenright /asterisk /plus /comma /minus /period /slash 
+/zero /one /two /three /four /five /six /seven 
+/eight /nine /colon /semicolon /less /equal /greater /question 
+/at /A /B /C /D /E /F /G 
+/H /I /J /K /L /M /N /O 
+/P /Q /R /S /T /U /V /W 
+/X /Y /Z /bracketleft /backslash /bracketright /asciicircum /underscore 
+/quoteleft /a /b /c /d /e /f /g 
+/h /i /j /k /l /m /n /o 
+/p /q /r /s /t /u /v /w 
+/x /y /z /braceleft /bar /braceright /asciitilde /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/space /exclamdown /cent /sterling /currency /yen /brokenbar /section 
+/dieresis /copyright /ordfeminine /guillemotleft /logicalnot /hyphen /registered /macron 
+/degree /plusminus /twosuperior /threesuperior /acute /mu /paragraph /bullet 
+/cedilla /onesuperior /ordmasculine /guillemotright /onequarter /onehalf /threequarters /questiondown 
+/Agrave /Aacute /Acircumflex /Atilde /Adieresis /Aring /AE /Ccedilla 
+/Egrave /Eacute /Ecircumflex /Edieresis /Igrave /Iacute /Icircumflex /Idieresis 
+/Eth /Ntilde /Ograve /Oacute /Ocircumflex /Otilde /Odieresis /multiply 
+/Oslash /Ugrave /Uacute /Ucircumflex /Udieresis /Yacute /Thorn /germandbls 
+/agrave /aacute /acircumflex /atilde /adieresis /aring /ae /ccedilla 
+/egrave /eacute /ecircumflex /edieresis /igrave /iacute /icircumflex /idieresis 
+/eth /ntilde /ograve /oacute /ocircumflex /otilde /odieresis /divide 
+/oslash /ugrave /uacute /ucircumflex /udieresis /yacute /thorn /ydieresis 
+] def
+%%EndResource
+% Initialize page description variables.
+/sh 595 def
+/sw 842 def
+/llx 24 def
+/urx 818 def
+/ury 571 def
+/lly 24 def
+/#copies 1 def
+/th 15.000000 def
+/fnfs 11 def
+/bfs 8.005733 def
+/cw 4.803440 def
+
+% Dictionary for ISO-8859-1 support
+/iso1dict 8 dict begin
+  /fCourier ISO-8859-1Encoding /Courier reencode_font
+  /fCourier-Bold ISO-8859-1Encoding /Courier-Bold reencode_font
+  /fCourier-BoldOblique ISO-8859-1Encoding /Courier-BoldOblique reencode_font
+  /fCourier-Oblique ISO-8859-1Encoding /Courier-Oblique reencode_font
+  /fHelvetica ISO-8859-1Encoding /Helvetica reencode_font
+  /fHelvetica-Bold ISO-8859-1Encoding /Helvetica-Bold reencode_font
+  /fTimes-Bold ISO-8859-1Encoding /Times-Bold reencode_font
+  /fTimes-Roman ISO-8859-1Encoding /Times-Roman reencode_font
+currentdict end def
+/bgcolor [ 0 0 0 ] def
+/bg false def
+/ul false def
+/bx false def
+% The font for line numbering
+/f# /Helvetica findfont bfs .6 mul scalefont def
+/fSymbol /Symbol findfont def
+/hm fnfs 0.25 mul def
+/pw
+   cw 81.400000 mul
+def
+/ph
+   501.959430 th add
+def
+/pmw urx llx sub pw 2 mul sub 1 div def
+/pmh 0 def
+/v 0 def
+/x [
+  0
+  dup pmw add pw add
+] def
+/y [
+  pmh ph add 0 mul ph add
+  dup
+] def
+/scx sw 2 div def
+/scy sh 2 div def
+/snx urx def
+/sny lly 2 add def
+/dx llx def
+/dy sny def
+/fnx scx def
+/fny dy def
+/lx snx def
+/ly ury fnfs 0.8 mul sub def
+/sx 0 def
+/tab 8 def
+/x0 0 def
+/y0 0 def
+%%EndSetup
+
+%%Page: (1-2) 1
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# Doxyfile 1.9.1) p n
+() N
+(# This file describes the settings to be used by the documentation system) N
+(# doxygen \(www.doxygen.org\) for a project.) N
+(#) N
+(# All text after a double hash \(##\) is considered a comment and is placed in) N
+(# front of the TAG it is preceding.) N
+(#) N
+(# All text after a single hash \(#\) is considered a comment and will be ignored.) N
+(# The format is:) N
+(# TAG = value [value, ...]) N
+(# For lists, items can also be appended using:) N
+(# TAG += value [value, ...]) N
+(# Values that contain spaces should be placed between quotes \(\\" \\"\).) N
+() N
+(#---------------------------------------------------------------------------) N
+(# Project related configuration options) N
+(#---------------------------------------------------------------------------) N
+() N
+(# This tag specifies the encoding used for all characters in the configuration) N
+(# file that follow. The default is UTF-8 which is also the encoding used for all) N
+(# text before the first occurrence of this tag. Doxygen uses libiconv \(or the) N
+(# iconv built into libc\) for the transcoding. See) N
+(# https://www.gnu.org/software/libiconv/ for the list of possible encodings.) N
+(# The default value is: UTF-8.) N
+() N
+(DOXYFILE_ENCODING      = UTF-8) N
+() N
+(# The PROJECT_NAME tag is a single word \(or a sequence of words surrounded by) N
+(# double-quotes, unless you are using Doxywizard\) that should identify the) N
+(# project for which the documentation is generated. This name is used in the) N
+(# title of most generated pages and in a few other places.) N
+(# The default value is: My Project.) N
+() N
+(PROJECT_NAME           = "Electrotest") N
+() N
+(# The PROJECT_NUMBER tag can be used to enter a project or revision number. This) N
+(# could be handy for archiving the generated documentation or if some version) N
+(# control system is used.) N
+() N
+(PROJECT_NUMBER         = v1.0) N
+() N
+(# Using the PROJECT_BRIEF tag one can provide an optional one line description) N
+(# for a project that appears at the top of each page and should give viewer a) N
+(# quick idea about the purpose of the project. Keep the description short.) N
+() N
+(PROJECT_BRIEF          =) N
+() N
+(# With the PROJECT_LOGO tag one can specify a logo or an icon that is included) N
+(# in the documentation. The maximum height of the logo should not exceed 55) N
+(# pixels and the maximum width should not exceed 200 pixels. Doxygen will copy) N
+(# the logo to the output directory.) N
+() N
+(PROJECT_LOGO           =) N
+() N
+(# The OUTPUT_DIRECTORY tag is used to specify the \(relative or absolute\) path) N
+(# into which the generated documentation will be written. If a relative path is) N
+(# entered, it will be relative to the location where doxygen was started. If) N
+(# left blank the current directory will be used.) N
+() N
+(OUTPUT_DIRECTORY       =) N
+() N
+(Doxyfile) (Page 1/43) (maj 29, 23 10:43) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# If the CREATE_SUBDIRS tag is set to YES then doxygen will create 4096 sub-) p n
+(# directories \(in 2 levels\) under the output directory of each output format and) N
+(# will distribute the generated files over these directories. Enabling this) N
+(# option can be useful when feeding doxygen a huge amount of source files, where) N
+(# putting all generated files in the same directory would otherwise causes) N
+(# performance problems for the file system.) N
+(# The default value is: NO.) N
+() N
+(CREATE_SUBDIRS         = NO) N
+() N
+(# If the ALLOW_UNICODE_NAMES tag is set to YES, doxygen will allow non-ASCII) N
+(# characters to appear in the names of generated files. If set to NO, non-ASCII) N
+(# characters will be escaped, for example _xE3_x81_x84 will be used for Unicode) N
+(# U+3044.) N
+(# The default value is: NO.) N
+() N
+(ALLOW_UNICODE_NAMES    = NO) N
+() N
+(# The OUTPUT_LANGUAGE tag is used to specify the language in which all) N
+(# documentation generated by doxygen is written. Doxygen will use this) N
+(# information to generate all constant output in the proper language.) N
+(# Possible values are: Afrikaans, Arabic, Armenian, Brazilian, Catalan, Chinese,) N
+(# Chinese-Traditional, Croatian, Czech, Danish, Dutch, English \(United States\),) N
+(# Esperanto, Farsi \(Persian\), Finnish, French, German, Greek, Hungarian,) N
+(# Indonesian, Italian, Japanese, Japanese-en \(Japanese with English messages\),) N
+(# Korean, Korean-en \(Korean with English messages\), Latvian, Lithuanian,) N
+(# Macedonian, Norwegian, Persian \(Farsi\), Polish, Portuguese, Romanian, Russian,) N
+(# Serbian, Serbian-Cyrillic, Slovak, Slovene, Spanish, Swedish, Turkish,) N
+(# Ukrainian and Vietnamese.) N
+(# The default value is: English.) N
+() N
+(OUTPUT_LANGUAGE        = English) N
+() N
+(# The OUTPUT_TEXT_DIRECTION tag is used to specify the direction in which all) N
+(# documentation generated by doxygen is written. Doxygen will use this) N
+(# information to generate all generated output in the proper direction.) N
+(# Possible values are: None, LTR, RTL and Context.) N
+(# The default value is: None.) N
+() N
+(OUTPUT_TEXT_DIRECTION  = None) N
+() N
+(# If the BRIEF_MEMBER_DESC tag is set to YES, doxygen will include brief member) N
+(# descriptions after the members that are listed in the file and class) N
+(# documentation \(similar to Javadoc\). Set to NO to disable this.) N
+(# The default value is: YES.) N
+() N
+(BRIEF_MEMBER_DESC      = YES) N
+() N
+(# If the REPEAT_BRIEF tag is set to YES, doxygen will prepend the brief) N
+(# description of a member or function before the detailed description) N
+(#) N
+(# Note: If both HIDE_UNDOC_MEMBERS and BRIEF_MEMBER_DESC are set to NO, the) N
+(# brief descriptions will be completely suppressed.) N
+(# The default value is: YES.) N
+() N
+(REPEAT_BRIEF           = YES) N
+() N
+(# This tag implements a quasi-intelligent brief description abbreviator that is) N
+(# used to form the text in various listings. Each string in this list, if found) N
+(# as the leading text of the brief description, will be stripped from the text) N
+(# and the result, after processing the whole list, is used as the annotated) N
+(# text. Otherwise, the brief description is used as-is. If left blank, the) N
+(Doxyfile) (Page 2/43) (maj 29, 23 10:43) title
+border
+grestore
+(Printed by Davjep) rhead
+(Doxyfile) (1/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (3-4) 2
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# following values are used \($name is automatically replaced with the name of) p n
+(# the entity\):The $name class, The $name widget, The $name file, is, provides,) N
+(# specifies, contains, represents, a, an and the.) N
+() N
+(ABBREVIATE_BRIEF       = "The $name class" \\) N
+(                         "The $name widget" \\) N
+(                         "The $name file" \\) N
+(                         is \\) N
+(                         provides \\) N
+(                         specifies \\) N
+(                         contains \\) N
+(                         represents \\) N
+(                         a \\) N
+(                         an \\) N
+(                         the) N
+() N
+(# If the ALWAYS_DETAILED_SEC and REPEAT_BRIEF tags are both set to YES then) N
+(# doxygen will generate a detailed section even if there is only a brief) N
+(# description.) N
+(# The default value is: NO.) N
+() N
+(ALWAYS_DETAILED_SEC    = NO) N
+() N
+(# If the INLINE_INHERITED_MEMB tag is set to YES, doxygen will show all) N
+(# inherited members of a class in the documentation of that class as if those) N
+(# members were ordinary class members. Constructors, destructors and assignment) N
+(# operators of the base classes will not be shown.) N
+(# The default value is: NO.) N
+() N
+(INLINE_INHERITED_MEMB  = NO) N
+() N
+(# If the FULL_PATH_NAMES tag is set to YES, doxygen will prepend the full path) N
+(# before files name in the file list and in the header files. If set to NO the) N
+(# shortest path that makes the file name unique will be used) N
+(# The default value is: YES.) N
+() N
+(FULL_PATH_NAMES        = YES) N
+() N
+(# The STRIP_FROM_PATH tag can be used to strip a user-defined part of the path.) N
+(# Stripping is only done if one of the specified strings matches the left-hand) N
+(# part of the path. The tag can be used to show relative paths in the file list.) N
+(# If left blank the directory from which doxygen is run is used as the path to) N
+(# strip.) N
+(#) N
+(# Note that you can specify absolute paths here, but also relative paths, which) N
+(# will be relative from the directory where doxygen is started.) N
+(# This tag requires that the tag FULL_PATH_NAMES is set to YES.) N
+() N
+(STRIP_FROM_PATH        =) N
+() N
+(# The STRIP_FROM_INC_PATH tag can be used to strip a user-defined part of the) N
+(# path mentioned in the documentation of a class, which tells the reader which) N
+(# header file to include in order to use a class. If left blank only the name of) N
+(# the header file containing the class definition is used. Otherwise one should) N
+(# specify the list of include paths that are normally passed to the compiler) N
+(# using the -I flag.) N
+() N
+(STRIP_FROM_INC_PATH    =) N
+() N
+(# If the SHORT_NAMES tag is set to YES, doxygen will generate much shorter \(but) N
+(# less readable\) file names. This can be useful is your file systems doesn't) N
+(# support long names like on DOS, Mac, or CD-ROM.) N
+(Doxyfile) (Page 3/43) (maj 29, 23 10:43) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# The default value is: NO.) p n
+() N
+(SHORT_NAMES            = NO) N
+() N
+(# If the JAVADOC_AUTOBRIEF tag is set to YES then doxygen will interpret the) N
+(# first line \(until the first dot\) of a Javadoc-style comment as the brief) N
+(# description. If set to NO, the Javadoc-style will behave just like regular Qt-) N
+(# style comments \(thus requiring an explicit @brief command for a brief) N
+(# description.\)) N
+(# The default value is: NO.) N
+() N
+(JAVADOC_AUTOBRIEF      = NO) N
+() N
+(# If the JAVADOC_BANNER tag is set to YES then doxygen will interpret a line) N
+(# such as) N
+(# /***************) N
+(# as being the beginning of a Javadoc-style comment "banner". If set to NO, the) N
+(# Javadoc-style will behave just like regular comments and it will not be) N
+(# interpreted by doxygen.) N
+(# The default value is: NO.) N
+() N
+(JAVADOC_BANNER         = NO) N
+() N
+(# If the QT_AUTOBRIEF tag is set to YES then doxygen will interpret the first) N
+(# line \(until the first dot\) of a Qt-style comment as the brief description. If) N
+(# set to NO, the Qt-style will behave just like regular Qt-style comments \(thus) N
+(# requiring an explicit \\brief command for a brief description.\)) N
+(# The default value is: NO.) N
+() N
+(QT_AUTOBRIEF           = NO) N
+() N
+(# The MULTILINE_CPP_IS_BRIEF tag can be set to YES to make doxygen treat a) N
+(# multi-line C++ special comment block \(i.e. a block of //! or /// comments\) as) N
+(# a brief description. This used to be the default behavior. The new default is) N
+(# to treat a multi-line C++ comment block as a detailed description. Set this) N
+(# tag to YES if you prefer the old behavior instead.) N
+(#) N
+(# Note that setting this tag to YES also means that rational rose comments are) N
+(# not recognized any more.) N
+(# The default value is: NO.) N
+() N
+(MULTILINE_CPP_IS_BRIEF = NO) N
+() N
+(# By default Python docstrings are displayed as preformatted text and doxygen's) N
+(# special commands cannot be used. By setting PYTHON_DOCSTRING to NO the) N
+(# doxygen's special commands can be used and the contents of the docstring) N
+(# documentation blocks is shown as doxygen documentation.) N
+(# The default value is: YES.) N
+() N
+(PYTHON_DOCSTRING       = YES) N
+() N
+(# If the INHERIT_DOCS tag is set to YES then an undocumented member inherits the) N
+(# documentation from any documented member that it re-implements.) N
+(# The default value is: YES.) N
+() N
+(INHERIT_DOCS           = YES) N
+() N
+(# If the SEPARATE_MEMBER_PAGES tag is set to YES then doxygen will produce a new) N
+(# page for each member. If set to NO, the documentation of a member will be part) N
+(# of the file/class/namespace that contains it.) N
+(# The default value is: NO.) N
+() N
+(Doxyfile) (Page 4/43) (maj 29, 23 10:43) title
+border
+grestore
+(Printed by Davjep) rhead
+(Doxyfile) (2/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (5-6) 3
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(SEPARATE_MEMBER_PAGES  = NO) p n
+() N
+(# The TAB_SIZE tag can be used to set the number of spaces in a tab. Doxygen) N
+(# uses this value to replace tabs by spaces in code fragments.) N
+(# Minimum value: 1, maximum value: 16, default value: 4.) N
+() N
+(TAB_SIZE               = 4) N
+() N
+(# This tag can be used to specify a number of aliases that act as commands in) N
+(# the documentation. An alias has the form:) N
+(# name=value) N
+(# For example adding) N
+(# "sideeffect=@par Side Effects:\\n") N
+(# will allow you to put the command \\sideeffect \(or @sideeffect\) in the) N
+(# documentation, which will result in a user-defined paragraph with heading) N
+(# "Side Effects:". You can put \\n's in the value part of an alias to insert) N
+(# newlines \(in the resulting output\). You can put ^^ in the value part of an) N
+(# alias to insert a newline as if a physical newline was in the original file.) N
+(# When you need a literal { or } or , in the value part of an alias you have to) N
+(# escape them by means of a backslash \(\\\), this can lead to conflicts with the) N
+(# commands \\{ and \\} for these it is advised to use the version @{ and @} or use) N
+(# a double escape \(\\\\{ and \\\\}\)) N
+() N
+(ALIASES                =) N
+() N
+(# Set the OPTIMIZE_OUTPUT_FOR_C tag to YES if your project consists of C sources) N
+(# only. Doxygen will then generate output that is more tailored for C. For) N
+(# instance, some of the names that are used will be different. The list of all) N
+(# members will be omitted, etc.) N
+(# The default value is: NO.) N
+() N
+(OPTIMIZE_OUTPUT_FOR_C  = YES) N
+() N
+(# Set the OPTIMIZE_OUTPUT_JAVA tag to YES if your project consists of Java or) N
+(# Python sources only. Doxygen will then generate output that is more tailored) N
+(# for that language. For instance, namespaces will be presented as packages,) N
+(# qualified scopes will look different, etc.) N
+(# The default value is: NO.) N
+() N
+(OPTIMIZE_OUTPUT_JAVA   = NO) N
+() N
+(# Set the OPTIMIZE_FOR_FORTRAN tag to YES if your project consists of Fortran) N
+(# sources. Doxygen will then generate output that is tailored for Fortran.) N
+(# The default value is: NO.) N
+() N
+(OPTIMIZE_FOR_FORTRAN   = NO) N
+() N
+(# Set the OPTIMIZE_OUTPUT_VHDL tag to YES if your project consists of VHDL) N
+(# sources. Doxygen will then generate output that is tailored for VHDL.) N
+(# The default value is: NO.) N
+() N
+(OPTIMIZE_OUTPUT_VHDL   = NO) N
+() N
+(# Set the OPTIMIZE_OUTPUT_SLICE tag to YES if your project consists of Slice) N
+(# sources only. Doxygen will then generate output that is more tailored for that) N
+(# language. For instance, namespaces will be presented as modules, types will be) N
+(# separated into more groups, etc.) N
+(# The default value is: NO.) N
+() N
+(OPTIMIZE_OUTPUT_SLICE  = NO) N
+() N
+(# Doxygen selects the parser to use depending on the extension of the files it) N
+(Doxyfile) (Page 5/43) (maj 29, 23 10:43) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# parses. With this tag you can assign which parser to use for a given) p n
+(# extension. Doxygen has a built-in mapping, but you can override or extend it) N
+(# using this tag. The format is ext=language, where ext is a file extension, and) N
+(# language is one of the parsers supported by doxygen: IDL, Java, JavaScript,) N
+(# Csharp \(C#\), C, C++, D, PHP, md \(Markdown\), Objective-C, Python, Slice, VHDL,) N
+(# Fortran \(fixed format Fortran: FortranFixed, free formatted Fortran:) N
+(# FortranFree, unknown formatted Fortran: Fortran. In the later case the parser) N
+(# tries to guess whether the code is fixed or free formatted code, this is the) N
+(# default for Fortran type files\). For instance to make doxygen treat .inc files) N
+(# as Fortran files \(default is PHP\), and .f files as C \(default is Fortran\),) N
+(# use: inc=Fortran f=C.) N
+(#) N
+(# Note: For files without extension you can use no_extension as a placeholder.) N
+(#) N
+(# Note that for custom extensions you also need to set FILE_PATTERNS otherwise) N
+(# the files are not read by doxygen. When specifying no_extension you should add) N
+(# * to the FILE_PATTERNS.) N
+(#) N
+(# Note see also the list of default file extension mappings.) N
+() N
+(EXTENSION_MAPPING      =) N
+() N
+(# If the MARKDOWN_SUPPORT tag is enabled then doxygen pre-processes all comments) N
+(# according to the Markdown format, which allows for more readable) N
+(# documentation. See https://daringfireball.net/projects/markdown/ for details.) N
+(# The output of markdown processing is further processed by doxygen, so you can) N
+(# mix doxygen, HTML, and XML commands with Markdown formatting. Disable only in) N
+(# case of backward compatibilities issues.) N
+(# The default value is: YES.) N
+() N
+(MARKDOWN_SUPPORT       = YES) N
+() N
+(# When the TOC_INCLUDE_HEADINGS tag is set to a non-zero value, all headings up) N
+(# to that level are automatically included in the table of contents, even if) N
+(# they do not have an id attribute.) N
+(# Note: This feature currently applies only to Markdown headings.) N
+(# Minimum value: 0, maximum value: 99, default value: 5.) N
+(# This tag requires that the tag MARKDOWN_SUPPORT is set to YES.) N
+() N
+(TOC_INCLUDE_HEADINGS   = 5) N
+() N
+(# When enabled doxygen tries to link words that correspond to documented) N
+(# classes, or namespaces to their corresponding documentation. Such a link can) N
+(# be prevented in individual cases by putting a % sign in front of the word or) N
+(# globally by setting AUTOLINK_SUPPORT to NO.) N
+(# The default value is: YES.) N
+() N
+(AUTOLINK_SUPPORT       = YES) N
+() N
+(# If you use STL classes \(i.e. std::string, std::vector, etc.\) but do not want) N
+(# to include \(a tag file for\) the STL sources as input, then you should set this) N
+(# tag to YES in order to let doxygen match functions declarations and) N
+(# definitions whose arguments contain STL classes \(e.g. func\(std::string\);) N
+(# versus func\(std::string\) {}\). This also make the inheritance and collaboration) N
+(# diagrams that involve STL classes more complete and accurate.) N
+(# The default value is: NO.) N
+() N
+(BUILTIN_STL_SUPPORT    = NO) N
+() N
+(# If you use Microsoft's C++/CLI language, you should set this option to YES to) N
+(# enable parsing support.) N
+(# The default value is: NO.) N
+(Doxyfile) (Page 6/43) (maj 29, 23 10:43) title
+border
+grestore
+(Printed by Davjep) rhead
+(Doxyfile) (3/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (7-8) 4
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p n
+(CPP_CLI_SUPPORT        = NO) N
+() N
+(# Set the SIP_SUPPORT tag to YES if your project consists of sip \(see:) N
+(# https://www.riverbankcomputing.com/software/sip/intro\) sources only. Doxygen) N
+(# will parse them like normal C++ but will assume all classes use public instead) N
+(# of private inheritance when no explicit protection keyword is present.) N
+(# The default value is: NO.) N
+() N
+(SIP_SUPPORT            = NO) N
+() N
+(# For Microsoft's IDL there are propget and propput attributes to indicate) N
+(# getter and setter methods for a property. Setting this option to YES will make) N
+(# doxygen to replace the get and set methods by a property in the documentation.) N
+(# This will only work if the methods are indeed getting or setting a simple) N
+(# type. If this is not the case, or you want to show the methods anyway, you) N
+(# should set this option to NO.) N
+(# The default value is: YES.) N
+() N
+(IDL_PROPERTY_SUPPORT   = YES) N
+() N
+(# If member grouping is used in the documentation and the DISTRIBUTE_GROUP_DOC) N
+(# tag is set to YES then doxygen will reuse the documentation of the first) N
+(# member in the group \(if any\) for the other members of the group. By default) N
+(# all members of a group must be documented explicitly.) N
+(# The default value is: NO.) N
+() N
+(DISTRIBUTE_GROUP_DOC   = NO) N
+() N
+(# If one adds a struct or class to a group and this option is enabled, then also) N
+(# any nested class or struct is added to the same group. By default this option) N
+(# is disabled and one has to add nested compounds explicitly via \\ingroup.) N
+(# The default value is: NO.) N
+() N
+(GROUP_NESTED_COMPOUNDS = NO) N
+() N
+(# Set the SUBGROUPING tag to YES to allow class member groups of the same type) N
+(# \(for instance a group of public functions\) to be put as a subgroup of that) N
+(# type \(e.g. under the Public Functions section\). Set it to NO to prevent) N
+(# subgrouping. Alternatively, this can be done per class using the) N
+(# \\nosubgrouping command.) N
+(# The default value is: YES.) N
+() N
+(SUBGROUPING            = YES) N
+() N
+(# When the INLINE_GROUPED_CLASSES tag is set to YES, classes, structs and unions) N
+(# are shown inside the group in which they are included \(e.g. using \\ingroup\)) N
+(# instead of on a separate page \(for HTML and Man pages\) or section \(for LaTeX) N
+(# and RTF\).) N
+(#) N
+(# Note that this feature does not work in combination with) N
+(# SEPARATE_MEMBER_PAGES.) N
+(# The default value is: NO.) N
+() N
+(INLINE_GROUPED_CLASSES = NO) N
+() N
+(# When the INLINE_SIMPLE_STRUCTS tag is set to YES, structs, classes, and unions) N
+(# with only public data fields or simple typedef fields will be shown inline in) N
+(# the documentation of the scope in which they are defined \(i.e. file,) N
+(# namespace, or group documentation\), provided this scope is documented. If set) N
+(# to NO, structs, classes, and unions are shown on a separate page \(for HTML and) N
+(# Man pages\) or section \(for LaTeX and RTF\).) N
+(Doxyfile) (Page 7/43) (maj 29, 23 10:43) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# The default value is: NO.) p n
+() N
+(INLINE_SIMPLE_STRUCTS  = NO) N
+() N
+(# When TYPEDEF_HIDES_STRUCT tag is enabled, a typedef of a struct, union, or) N
+(# enum is documented as struct, union, or enum with the name of the typedef. So) N
+(# typedef struct TypeS {} TypeT, will appear in the documentation as a struct) N
+(# with name TypeT. When disabled the typedef will appear as a member of a file,) N
+(# namespace, or class. And the struct will be named TypeS. This can typically be) N
+(# useful for C code in case the coding convention dictates that all compound) N
+(# types are typedef'ed and only the typedef is referenced, never the tag name.) N
+(# The default value is: NO.) N
+() N
+(TYPEDEF_HIDES_STRUCT   = NO) N
+() N
+(# The size of the symbol lookup cache can be set using LOOKUP_CACHE_SIZE. This) N
+(# cache is used to resolve symbols given their name and scope. Since this can be) N
+(# an expensive process and often the same symbol appears multiple times in the) N
+(# code, doxygen keeps a cache of pre-resolved symbols. If the cache is too small) N
+(# doxygen will become slower. If the cache is too large, memory is wasted. The) N
+(# cache size is given by this formula: 2^\(16+LOOKUP_CACHE_SIZE\). The valid range) N
+(# is 0..9, the default is 0, corresponding to a cache size of 2^16=65536) N
+(# symbols. At the end of a run doxygen will report the cache usage and suggest) N
+(# the optimal cache size from a speed point of view.) N
+(# Minimum value: 0, maximum value: 9, default value: 0.) N
+() N
+(LOOKUP_CACHE_SIZE      = 0) N
+() N
+(# The NUM_PROC_THREADS specifies the number threads doxygen is allowed to use) N
+(# during processing. When set to 0 doxygen will based this on the number of) N
+(# cores available in the system. You can set it explicitly to a value larger) N
+(# than 0 to get more control over the balance between CPU load and processing) N
+(# speed. At this moment only the input processing can be done using multiple) N
+(# threads. Since this is still an experimental feature the default is set to 1,) N
+(# which efficively disables parallel processing. Please report any issues you) N
+(# encounter. Generating dot graphs in parallel is controlled by the) N
+(# DOT_NUM_THREADS setting.) N
+(# Minimum value: 0, maximum value: 32, default value: 1.) N
+() N
+(NUM_PROC_THREADS       = 1) N
+() N
+(#---------------------------------------------------------------------------) N
+(# Build related configuration options) N
+(#---------------------------------------------------------------------------) N
+() N
+(# If the EXTRACT_ALL tag is set to YES, doxygen will assume all entities in) N
+(# documentation are documented, even if no documentation was available. Private) N
+(# class members and static file members will be hidden unless the) N
+(# EXTRACT_PRIVATE respectively EXTRACT_STATIC tags are set to YES.) N
+(# Note: This will also disable the warnings about undocumented members that are) N
+(# normally produced when WARNINGS is set to YES.) N
+(# The default value is: NO.) N
+() N
+(EXTRACT_ALL            = NO) N
+() N
+(# If the EXTRACT_PRIVATE tag is set to YES, all private members of a class will) N
+(# be included in the documentation.) N
+(# The default value is: NO.) N
+() N
+(EXTRACT_PRIVATE        = NO) N
+() N
+(# If the EXTRACT_PRIV_VIRTUAL tag is set to YES, documented private virtual) N
+(Doxyfile) (Page 8/43) (maj 29, 23 10:43) title
+border
+grestore
+(Printed by Davjep) rhead
+(Doxyfile) (4/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (9-10) 5
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# methods of a class will be included in the documentation.) p n
+(# The default value is: NO.) N
+() N
+(EXTRACT_PRIV_VIRTUAL   = NO) N
+() N
+(# If the EXTRACT_PACKAGE tag is set to YES, all members with package or internal) N
+(# scope will be included in the documentation.) N
+(# The default value is: NO.) N
+() N
+(EXTRACT_PACKAGE        = NO) N
+() N
+(# If the EXTRACT_STATIC tag is set to YES, all static members of a file will be) N
+(# included in the documentation.) N
+(# The default value is: NO.) N
+() N
+(EXTRACT_STATIC         = NO) N
+() N
+(# If the EXTRACT_LOCAL_CLASSES tag is set to YES, classes \(and structs\) defined) N
+(# locally in source files will be included in the documentation. If set to NO,) N
+(# only classes defined in header files are included. Does not have any effect) N
+(# for Java sources.) N
+(# The default value is: YES.) N
+() N
+(EXTRACT_LOCAL_CLASSES  = YES) N
+() N
+(# This flag is only useful for Objective-C code. If set to YES, local methods,) N
+(# which are defined in the implementation section but not in the interface are) N
+(# included in the documentation. If set to NO, only methods in the interface are) N
+(# included.) N
+(# The default value is: NO.) N
+() N
+(EXTRACT_LOCAL_METHODS  = NO) N
+() N
+(# If this flag is set to YES, the members of anonymous namespaces will be) N
+(# extracted and appear in the documentation as a namespace called) N
+(# 'anonymous_namespace{file}', where file will be replaced with the base name of) N
+(# the file that contains the anonymous namespace. By default anonymous namespace) N
+(# are hidden.) N
+(# The default value is: NO.) N
+() N
+(EXTRACT_ANON_NSPACES   = NO) N
+() N
+(# If this flag is set to YES, the name of an unnamed parameter in a declaration) N
+(# will be determined by the corresponding definition. By default unnamed) N
+(# parameters remain unnamed in the output.) N
+(# The default value is: YES.) N
+() N
+(RESOLVE_UNNAMED_PARAMS = YES) N
+() N
+(# If the HIDE_UNDOC_MEMBERS tag is set to YES, doxygen will hide all) N
+(# undocumented members inside documented classes or files. If set to NO these) N
+(# members will be included in the various overviews, but no documentation) N
+(# section is generated. This option has no effect if EXTRACT_ALL is enabled.) N
+(# The default value is: NO.) N
+() N
+(HIDE_UNDOC_MEMBERS     = NO) N
+() N
+(# If the HIDE_UNDOC_CLASSES tag is set to YES, doxygen will hide all) N
+(# undocumented classes that are normally visible in the class hierarchy. If set) N
+(# to NO, these classes will be included in the various overviews. This option) N
+(# has no effect if EXTRACT_ALL is enabled.) N
+(# The default value is: NO.) N
+(Doxyfile) (Page 9/43) (maj 29, 23 10:43) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p n
+(HIDE_UNDOC_CLASSES     = NO) N
+() N
+(# If the HIDE_FRIEND_COMPOUNDS tag is set to YES, doxygen will hide all friend) N
+(# declarations. If set to NO, these declarations will be included in the) N
+(# documentation.) N
+(# The default value is: NO.) N
+() N
+(HIDE_FRIEND_COMPOUNDS  = NO) N
+() N
+(# If the HIDE_IN_BODY_DOCS tag is set to YES, doxygen will hide any) N
+(# documentation blocks found inside the body of a function. If set to NO, these) N
+(# blocks will be appended to the function's detailed documentation block.) N
+(# The default value is: NO.) N
+() N
+(HIDE_IN_BODY_DOCS      = NO) N
+() N
+(# The INTERNAL_DOCS tag determines if documentation that is typed after a) N
+(# \\internal command is included. If the tag is set to NO then the documentation) N
+(# will be excluded. Set it to YES to include the internal documentation.) N
+(# The default value is: NO.) N
+() N
+(INTERNAL_DOCS          = NO) N
+() N
+(# With the correct setting of option CASE_SENSE_NAMES doxygen will better be) N
+(# able to match the capabilities of the underlying filesystem. In case the) N
+(# filesystem is case sensitive \(i.e. it supports files in the same directory) N
+(# whose names only differ in casing\), the option must be set to YES to properly) N
+(# deal with such files in case they appear in the input. For filesystems that) N
+(# are not case sensitive the option should be be set to NO to properly deal with) N
+(# output files written for symbols that only differ in casing, such as for two) N
+(# classes, one named CLASS and the other named Class, and to also support) N
+(# references to files without having to specify the exact matching casing. On) N
+(# Windows \(including Cygwin\) and MacOS, users should typically set this option) N
+(# to NO, whereas on Linux or other Unix flavors it should typically be set to) N
+(# YES.) N
+(# The default value is: system dependent.) N
+() N
+(CASE_SENSE_NAMES       = YES) N
+() N
+(# If the HIDE_SCOPE_NAMES tag is set to NO then doxygen will show members with) N
+(# their full class and namespace scopes in the documentation. If set to YES, the) N
+(# scope will be hidden.) N
+(# The default value is: NO.) N
+() N
+(HIDE_SCOPE_NAMES       = NO) N
+() N
+(# If the HIDE_COMPOUND_REFERENCE tag is set to NO \(default\) then doxygen will) N
+(# append additional text to a page's title, such as Class Reference. If set to) N
+(# YES the compound reference will be hidden.) N
+(# The default value is: NO.) N
+() N
+(HIDE_COMPOUND_REFERENCE= NO) N
+() N
+(# If the SHOW_INCLUDE_FILES tag is set to YES then doxygen will put a list of) N
+(# the files that are included by a file in the documentation of that file.) N
+(# The default value is: YES.) N
+() N
+(SHOW_INCLUDE_FILES     = YES) N
+() N
+(# If the SHOW_GROUPED_MEMB_INC tag is set to YES then Doxygen will add for each) N
+(# grouped member an include statement to the documentation, telling the reader) N
+(Doxyfile) (Page 10/43) (maj 29, 23 10:43) title
+border
+grestore
+(Printed by Davjep) rhead
+(Doxyfile) (5/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (11-12) 6
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# which file to include in order to use the member.) p n
+(# The default value is: NO.) N
+() N
+(SHOW_GROUPED_MEMB_INC  = NO) N
+() N
+(# If the FORCE_LOCAL_INCLUDES tag is set to YES then doxygen will list include) N
+(# files with double quotes in the documentation rather than with sharp brackets.) N
+(# The default value is: NO.) N
+() N
+(FORCE_LOCAL_INCLUDES   = NO) N
+() N
+(# If the INLINE_INFO tag is set to YES then a tag [inline] is inserted in the) N
+(# documentation for inline members.) N
+(# The default value is: YES.) N
+() N
+(INLINE_INFO            = YES) N
+() N
+(# If the SORT_MEMBER_DOCS tag is set to YES then doxygen will sort the) N
+(# \(detailed\) documentation of file and class members alphabetically by member) N
+(# name. If set to NO, the members will appear in declaration order.) N
+(# The default value is: YES.) N
+() N
+(SORT_MEMBER_DOCS       = YES) N
+() N
+(# If the SORT_BRIEF_DOCS tag is set to YES then doxygen will sort the brief) N
+(# descriptions of file, namespace and class members alphabetically by member) N
+(# name. If set to NO, the members will appear in declaration order. Note that) N
+(# this will also influence the order of the classes in the class list.) N
+(# The default value is: NO.) N
+() N
+(SORT_BRIEF_DOCS        = NO) N
+() N
+(# If the SORT_MEMBERS_CTORS_1ST tag is set to YES then doxygen will sort the) N
+(# \(brief and detailed\) documentation of class members so that constructors and) N
+(# destructors are listed first. If set to NO the constructors will appear in the) N
+(# respective orders defined by SORT_BRIEF_DOCS and SORT_MEMBER_DOCS.) N
+(# Note: If SORT_BRIEF_DOCS is set to NO this option is ignored for sorting brief) N
+(# member documentation.) N
+(# Note: If SORT_MEMBER_DOCS is set to NO this option is ignored for sorting) N
+(# detailed member documentation.) N
+(# The default value is: NO.) N
+() N
+(SORT_MEMBERS_CTORS_1ST = NO) N
+() N
+(# If the SORT_GROUP_NAMES tag is set to YES then doxygen will sort the hierarchy) N
+(# of group names into alphabetical order. If set to NO the group names will) N
+(# appear in their defined order.) N
+(# The default value is: NO.) N
+() N
+(SORT_GROUP_NAMES       = NO) N
+() N
+(# If the SORT_BY_SCOPE_NAME tag is set to YES, the class list will be sorted by) N
+(# fully-qualified names, including namespaces. If set to NO, the class list will) N
+(# be sorted only by class name, not including the namespace part.) N
+(# Note: This option is not very useful if HIDE_SCOPE_NAMES is set to YES.) N
+(# Note: This option applies only to the class list, not to the alphabetical) N
+(# list.) N
+(# The default value is: NO.) N
+() N
+(SORT_BY_SCOPE_NAME     = NO) N
+() N
+(# If the STRICT_PROTO_MATCHING option is enabled and doxygen fails to do proper) N
+(Doxyfile) (Page 11/43) (maj 29, 23 10:43) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# type resolution of all parameters of a function it will reject a match between) p n
+(# the prototype and the implementation of a member function even if there is) N
+(# only one candidate or it is obvious which candidate to choose by doing a) N
+(# simple string match. By disabling STRICT_PROTO_MATCHING doxygen will still) N
+(# accept a match between prototype and implementation in such cases.) N
+(# The default value is: NO.) N
+() N
+(STRICT_PROTO_MATCHING  = NO) N
+() N
+(# The GENERATE_TODOLIST tag can be used to enable \(YES\) or disable \(NO\) the todo) N
+(# list. This list is created by putting \\todo commands in the documentation.) N
+(# The default value is: YES.) N
+() N
+(GENERATE_TODOLIST      = YES) N
+() N
+(# The GENERATE_TESTLIST tag can be used to enable \(YES\) or disable \(NO\) the test) N
+(# list. This list is created by putting \\test commands in the documentation.) N
+(# The default value is: YES.) N
+() N
+(GENERATE_TESTLIST      = YES) N
+() N
+(# The GENERATE_BUGLIST tag can be used to enable \(YES\) or disable \(NO\) the bug) N
+(# list. This list is created by putting \\bug commands in the documentation.) N
+(# The default value is: YES.) N
+() N
+(GENERATE_BUGLIST       = YES) N
+() N
+(# The GENERATE_DEPRECATEDLIST tag can be used to enable \(YES\) or disable \(NO\)) N
+(# the deprecated list. This list is created by putting \\deprecated commands in) N
+(# the documentation.) N
+(# The default value is: YES.) N
+() N
+(GENERATE_DEPRECATEDLIST= YES) N
+() N
+(# The ENABLED_SECTIONS tag can be used to enable conditional documentation) N
+(# sections, marked by \\if <section_label> ... \\endif and \\cond <section_label>) N
+(# ... \\endcond blocks.) N
+() N
+(ENABLED_SECTIONS       =) N
+() N
+(# The MAX_INITIALIZER_LINES tag determines the maximum number of lines that the) N
+(# initial value of a variable or macro / define can have for it to appear in the) N
+(# documentation. If the initializer consists of more lines than specified here) N
+(# it will be hidden. Use a value of 0 to hide initializers completely. The) N
+(# appearance of the value of individual variables and macros / defines can be) N
+(# controlled using \\showinitializer or \\hideinitializer command in the) N
+(# documentation regardless of this setting.) N
+(# Minimum value: 0, maximum value: 10000, default value: 30.) N
+() N
+(MAX_INITIALIZER_LINES  = 30) N
+() N
+(# Set the SHOW_USED_FILES tag to NO to disable the list of files generated at) N
+(# the bottom of the documentation of classes and structs. If set to YES, the) N
+(# list will mention the files that were used to generate the documentation.) N
+(# The default value is: YES.) N
+() N
+(SHOW_USED_FILES        = YES) N
+() N
+(# Set the SHOW_FILES tag to NO to disable the generation of the Files page. This) N
+(# will remove the Files entry from the Quick Index and from the Folder Tree View) N
+(# \(if specified\).) N
+(# The default value is: YES.) N
+(Doxyfile) (Page 12/43) (maj 29, 23 10:43) title
+border
+grestore
+(Printed by Davjep) rhead
+(Doxyfile) (6/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (13-14) 7
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p n
+(SHOW_FILES             = YES) N
+() N
+(# Set the SHOW_NAMESPACES tag to NO to disable the generation of the Namespaces) N
+(# page. This will remove the Namespaces entry from the Quick Index and from the) N
+(# Folder Tree View \(if specified\).) N
+(# The default value is: YES.) N
+() N
+(SHOW_NAMESPACES        = YES) N
+() N
+(# The FILE_VERSION_FILTER tag can be used to specify a program or script that) N
+(# doxygen should invoke to get the current version for each file \(typically from) N
+(# the version control system\). Doxygen will invoke the program by executing \(via) N
+(# popen\(\)\) the command command input-file, where command is the value of the) N
+(# FILE_VERSION_FILTER tag, and input-file is the name of an input file provided) N
+(# by doxygen. Whatever the program writes to standard output is used as the file) N
+(# version. For an example see the documentation.) N
+() N
+(FILE_VERSION_FILTER    =) N
+() N
+(# The LAYOUT_FILE tag can be used to specify a layout file which will be parsed) N
+(# by doxygen. The layout file controls the global structure of the generated) N
+(# output files in an output format independent way. To create the layout file) N
+(# that represents doxygen's defaults, run doxygen with the -l option. You can) N
+(# optionally specify a file name after the option, if omitted DoxygenLayout.xml) N
+(# will be used as the name of the layout file.) N
+(#) N
+(# Note that if you run doxygen from a directory containing a file called) N
+(# DoxygenLayout.xml, doxygen will parse it automatically even if the LAYOUT_FILE) N
+(# tag is left empty.) N
+() N
+(LAYOUT_FILE            =) N
+() N
+(# The CITE_BIB_FILES tag can be used to specify one or more bib files containing) N
+(# the reference definitions. This must be a list of .bib files. The .bib) N
+(# extension is automatically appended if omitted. This requires the bibtex tool) N
+(# to be installed. See also https://en.wikipedia.org/wiki/BibTeX for more info.) N
+(# For LaTeX the style of the bibliography can be controlled using) N
+(# LATEX_BIB_STYLE. To use this feature you need bibtex and perl available in the) N
+(# search path. See also \\cite for info how to create references.) N
+() N
+(CITE_BIB_FILES         =) N
+() N
+(#---------------------------------------------------------------------------) N
+(# Configuration options related to warning and progress messages) N
+(#---------------------------------------------------------------------------) N
+() N
+(# The QUIET tag can be used to turn on/off the messages that are generated to) N
+(# standard output by doxygen. If QUIET is set to YES this implies that the) N
+(# messages are off.) N
+(# The default value is: NO.) N
+() N
+(QUIET                  = NO) N
+() N
+(# The WARNINGS tag can be used to turn on/off the warning messages that are) N
+(# generated to standard error \(stderr\) by doxygen. If WARNINGS is set to YES) N
+(# this implies that the warnings are on.) N
+(#) N
+(# Tip: Turn warnings on while writing the documentation.) N
+(# The default value is: YES.) N
+() N
+(WARNINGS               = YES) N
+(Doxyfile) (Page 13/43) (maj 29, 23 10:43) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p n
+(# If the WARN_IF_UNDOCUMENTED tag is set to YES then doxygen will generate) N
+(# warnings for undocumented members. If EXTRACT_ALL is set to YES then this flag) N
+(# will automatically be disabled.) N
+(# The default value is: YES.) N
+() N
+(WARN_IF_UNDOCUMENTED   = YES) N
+() N
+(# If the WARN_IF_DOC_ERROR tag is set to YES, doxygen will generate warnings for) N
+(# potential errors in the documentation, such as not documenting some parameters) N
+(# in a documented function, or documenting parameters that don't exist or using) N
+(# markup commands wrongly.) N
+(# The default value is: YES.) N
+() N
+(WARN_IF_DOC_ERROR      = YES) N
+() N
+(# This WARN_NO_PARAMDOC option can be enabled to get warnings for functions that) N
+(# are documented, but have no documentation for their parameters or return) N
+(# value. If set to NO, doxygen will only warn about wrong or incomplete) N
+(# parameter documentation, but not about the absence of documentation. If) N
+(# EXTRACT_ALL is set to YES then this flag will automatically be disabled.) N
+(# The default value is: NO.) N
+() N
+(WARN_NO_PARAMDOC       = NO) N
+() N
+(# If the WARN_AS_ERROR tag is set to YES then doxygen will immediately stop when) N
+(# a warning is encountered. If the WARN_AS_ERROR tag is set to FAIL_ON_WARNINGS) N
+(# then doxygen will continue running as if WARN_AS_ERROR tag is set to NO, but) N
+(# at the end of the doxygen process doxygen will return with a non-zero status.) N
+(# Possible values are: NO, YES and FAIL_ON_WARNINGS.) N
+(# The default value is: NO.) N
+() N
+(WARN_AS_ERROR          = NO) N
+() N
+(# The WARN_FORMAT tag determines the format of the warning messages that doxygen) N
+(# can produce. The string should contain the $file, $line, and $text tags, which) N
+(# will be replaced by the file and line number from which the warning originated) N
+(# and the warning text. Optionally the format may contain $version, which will) N
+(# be replaced by the version of the file \(if it could be obtained via) N
+(# FILE_VERSION_FILTER\)) N
+(# The default value is: $file:$line: $text.) N
+() N
+(WARN_FORMAT            = "$file:$line: $text") N
+() N
+(# The WARN_LOGFILE tag can be used to specify a file to which warning and error) N
+(# messages should be written. If left blank the output is written to standard) N
+(# error \(stderr\).) N
+() N
+(WARN_LOGFILE           =) N
+() N
+(#---------------------------------------------------------------------------) N
+(# Configuration options related to the input files) N
+(#---------------------------------------------------------------------------) N
+() N
+(# The INPUT tag is used to specify the files and/or directories that contain) N
+(# documented source files. You may enter file names like myfile.cpp or) N
+(# directories like /usr/src/myproject. Separate the files or directories with) N
+(# spaces. See also FILE_PATTERNS and EXTENSION_MAPPING) N
+(# Note: If this tag is empty the current directory is searched.) N
+() N
+(INPUT                  =) N
+() N
+(Doxyfile) (Page 14/43) (maj 29, 23 10:43) title
+border
+grestore
+(Printed by Davjep) rhead
+(Doxyfile) (7/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (15-16) 8
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# This tag can be used to specify the character encoding of the source files) p n
+(# that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses) N
+(# libiconv \(or the iconv built into libc\) for the transcoding. See the libiconv) N
+(# documentation \(see:) N
+(# https://www.gnu.org/software/libiconv/\) for the list of possible encodings.) N
+(# The default value is: UTF-8.) N
+() N
+(INPUT_ENCODING         = UTF-8) N
+() N
+(# If the value of the INPUT tag contains directories, you can use the) N
+(# FILE_PATTERNS tag to specify one or more wildcard patterns \(like *.cpp and) N
+(# *.h\) to filter out the source-files in the directories.) N
+(#) N
+(# Note that for custom extensions or not directly supported extensions you also) N
+(# need to set EXTENSION_MAPPING for the extension otherwise the files are not) N
+(# read by doxygen.) N
+(#) N
+(# Note the list of default checked file patterns might differ from the list of) N
+(# default file extension mappings.) N
+(#) N
+(# If left blank the following patterns are tested:*.c, *.cc, *.cxx, *.cpp,) N
+(# *.c++, *.java, *.ii, *.ixx, *.ipp, *.i++, *.inl, *.idl, *.ddl, *.odl, *.h,) N
+(# *.hh, *.hxx, *.hpp, *.h++, *.cs, *.d, *.php, *.php4, *.php5, *.phtml, *.inc,) N
+(# *.m, *.markdown, *.md, *.mm, *.dox \(to be provided as doxygen C comment\),) N
+(# *.py, *.pyw, *.f90, *.f95, *.f03, *.f08, *.f18, *.f, *.for, *.vhd, *.vhdl,) N
+(# *.ucf, *.qsf and *.ice.) N
+() N
+(FILE_PATTERNS          = *.c \\) N
+(                         *.cc \\) N
+(                         *.cxx \\) N
+(                         *.cpp \\) N
+(                         *.c++ \\) N
+(                         *.java \\) N
+(                         *.ii \\) N
+(                         *.ixx \\) N
+(                         *.ipp \\) N
+(                         *.i++ \\) N
+(                         *.inl \\) N
+(                         *.idl \\) N
+(                         *.ddl \\) N
+(                         *.odl \\) N
+(                         *.h \\) N
+(                         *.hh \\) N
+(                         *.hxx \\) N
+(                         *.hpp \\) N
+(                         *.h++ \\) N
+(                         *.cs \\) N
+(                         *.d \\) N
+(                         *.php \\) N
+(                         *.php4 \\) N
+(                         *.php5 \\) N
+(                         *.phtml \\) N
+(                         *.inc \\) N
+(                         *.m \\) N
+(                         *.markdown \\) N
+(                         *.md \\) N
+(                         *.mm \\) N
+(                         *.dox \\) N
+(                         *.py \\) N
+(                         *.pyw \\) N
+(                         *.f90 \\) N
+(                         *.f95 \\) N
+(Doxyfile) (Page 15/43) (maj 29, 23 10:43) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(                         *.f03 \\) p n
+(                         *.f08 \\) N
+(                         *.f18 \\) N
+(                         *.f \\) N
+(                         *.for \\) N
+(                         *.vhd \\) N
+(                         *.vhdl \\) N
+(                         *.ucf \\) N
+(                         *.qsf \\) N
+(                         *.ice) N
+() N
+(# The RECURSIVE tag can be used to specify whether or not subdirectories should) N
+(# be searched for input files as well.) N
+(# The default value is: NO.) N
+() N
+(RECURSIVE              = NO) N
+() N
+(# The EXCLUDE tag can be used to specify files and/or directories that should be) N
+(# excluded from the INPUT source files. This way you can easily exclude a) N
+(# subdirectory from a directory tree whose root is specified with the INPUT tag.) N
+(#) N
+(# Note that relative paths are relative to the directory from which doxygen is) N
+(# run.) N
+() N
+(EXCLUDE                =) N
+() N
+(# The EXCLUDE_SYMLINKS tag can be used to select whether or not files or) N
+(# directories that are symbolic links \(a Unix file system feature\) are excluded) N
+(# from the input.) N
+(# The default value is: NO.) N
+() N
+(EXCLUDE_SYMLINKS       = NO) N
+() N
+(# If the value of the INPUT tag contains directories, you can use the) N
+(# EXCLUDE_PATTERNS tag to specify one or more wildcard patterns to exclude) N
+(# certain files from those directories.) N
+(#) N
+(# Note that the wildcards are matched against the file with absolute path, so to) N
+(# exclude all test directories for example use the pattern */test/*) N
+() N
+(EXCLUDE_PATTERNS       =) N
+() N
+(# The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names) N
+(# \(namespaces, classes, functions, etc.\) that should be excluded from the) N
+(# output. The symbol name can be a fully qualified name, a word, or if the) N
+(# wildcard * is used, a substring. Examples: ANamespace, AClass,) N
+(# AClass::ANamespace, ANamespace::*Test) N
+(#) N
+(# Note that the wildcards are matched against the file with absolute path, so to) N
+(# exclude all test directories use the pattern */test/*) N
+() N
+(EXCLUDE_SYMBOLS        =) N
+() N
+(# The EXAMPLE_PATH tag can be used to specify one or more files or directories) N
+(# that contain example code fragments that are included \(see the \\include) N
+(# command\).) N
+() N
+(EXAMPLE_PATH           =) N
+() N
+(# If the value of the EXAMPLE_PATH tag contains directories, you can use the) N
+(# EXAMPLE_PATTERNS tag to specify one or more wildcard pattern \(like *.cpp and) N
+(# *.h\) to filter out the source-files in the directories. If left blank all) N
+(Doxyfile) (Page 16/43) (maj 29, 23 10:43) title
+border
+grestore
+(Printed by Davjep) rhead
+(Doxyfile) (8/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (17-18) 9
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# files are included.) p n
+() N
+(EXAMPLE_PATTERNS       = *) N
+() N
+(# If the EXAMPLE_RECURSIVE tag is set to YES then subdirectories will be) N
+(# searched for input files to be used with the \\include or \\dontinclude commands) N
+(# irrespective of the value of the RECURSIVE tag.) N
+(# The default value is: NO.) N
+() N
+(EXAMPLE_RECURSIVE      = NO) N
+() N
+(# The IMAGE_PATH tag can be used to specify one or more files or directories) N
+(# that contain images that are to be included in the documentation \(see the) N
+(# \\image command\).) N
+() N
+(IMAGE_PATH             =) N
+() N
+(# The INPUT_FILTER tag can be used to specify a program that doxygen should) N
+(# invoke to filter for each input file. Doxygen will invoke the filter program) N
+(# by executing \(via popen\(\)\) the command:) N
+(#) N
+(# <filter> <input-file>) N
+(#) N
+(# where <filter> is the value of the INPUT_FILTER tag, and <input-file> is the) N
+(# name of an input file. Doxygen will then use the output that the filter) N
+(# program writes to standard output. If FILTER_PATTERNS is specified, this tag) N
+(# will be ignored.) N
+(#) N
+(# Note that the filter must not add or remove lines; it is applied before the) N
+(# code is scanned, but not when the output code is generated. If lines are added) N
+(# or removed, the anchors will not be placed correctly.) N
+(#) N
+(# Note that for custom extensions or not directly supported extensions you also) N
+(# need to set EXTENSION_MAPPING for the extension otherwise the files are not) N
+(# properly processed by doxygen.) N
+() N
+(INPUT_FILTER           =) N
+() N
+(# The FILTER_PATTERNS tag can be used to specify filters on a per file pattern) N
+(# basis. Doxygen will compare the file name with each pattern and apply the) N
+(# filter if there is a match. The filters are a list of the form: pattern=filter) N
+(# \(like *.cpp=my_cpp_filter\). See INPUT_FILTER for further information on how) N
+(# filters are used. If the FILTER_PATTERNS tag is empty or if none of the) N
+(# patterns match the file name, INPUT_FILTER is applied.) N
+(#) N
+(# Note that for custom extensions or not directly supported extensions you also) N
+(# need to set EXTENSION_MAPPING for the extension otherwise the files are not) N
+(# properly processed by doxygen.) N
+() N
+(FILTER_PATTERNS        =) N
+() N
+(# If the FILTER_SOURCE_FILES tag is set to YES, the input filter \(if set using) N
+(# INPUT_FILTER\) will also be used to filter the input files that are used for) N
+(# producing the source files to browse \(i.e. when SOURCE_BROWSER is set to YES\).) N
+(# The default value is: NO.) N
+() N
+(FILTER_SOURCE_FILES    = NO) N
+() N
+(# The FILTER_SOURCE_PATTERNS tag can be used to specify source filters per file) N
+(# pattern. A pattern will override the setting for FILTER_PATTERN \(if any\) and) N
+(# it is also possible to disable source filtering for a specific pattern using) N
+(# *.ext= \(so without naming a filter\).) N
+(Doxyfile) (Page 17/43) (maj 29, 23 10:43) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# This tag requires that the tag FILTER_SOURCE_FILES is set to YES.) p n
+() N
+(FILTER_SOURCE_PATTERNS =) N
+() N
+(# If the USE_MDFILE_AS_MAINPAGE tag refers to the name of a markdown file that) N
+(# is part of the input, its contents will be placed on the main page) N
+(# \(index.html\). This can be useful if you have a project on for instance GitHub) N
+(# and want to reuse the introduction page also for the doxygen output.) N
+() N
+(USE_MDFILE_AS_MAINPAGE =) N
+() N
+(#---------------------------------------------------------------------------) N
+(# Configuration options related to source browsing) N
+(#---------------------------------------------------------------------------) N
+() N
+(# If the SOURCE_BROWSER tag is set to YES then a list of source files will be) N
+(# generated. Documented entities will be cross-referenced with these sources.) N
+(#) N
+(# Note: To get rid of all source code in the generated output, make sure that) N
+(# also VERBATIM_HEADERS is set to NO.) N
+(# The default value is: NO.) N
+() N
+(SOURCE_BROWSER         = NO) N
+() N
+(# Setting the INLINE_SOURCES tag to YES will include the body of functions,) N
+(# classes and enums directly into the documentation.) N
+(# The default value is: NO.) N
+() N
+(INLINE_SOURCES         = NO) N
+() N
+(# Setting the STRIP_CODE_COMMENTS tag to YES will instruct doxygen to hide any) N
+(# special comment blocks from generated source code fragments. Normal C, C++ and) N
+(# Fortran comments will always remain visible.) N
+(# The default value is: YES.) N
+() N
+(STRIP_CODE_COMMENTS    = YES) N
+() N
+(# If the REFERENCED_BY_RELATION tag is set to YES then for each documented) N
+(# entity all documented functions referencing it will be listed.) N
+(# The default value is: NO.) N
+() N
+(REFERENCED_BY_RELATION = NO) N
+() N
+(# If the REFERENCES_RELATION tag is set to YES then for each documented function) N
+(# all documented entities called/used by that function will be listed.) N
+(# The default value is: NO.) N
+() N
+(REFERENCES_RELATION    = NO) N
+() N
+(# If the REFERENCES_LINK_SOURCE tag is set to YES and SOURCE_BROWSER tag is set) N
+(# to YES then the hyperlinks from functions in REFERENCES_RELATION and) N
+(# REFERENCED_BY_RELATION lists will link to the source code. Otherwise they will) N
+(# link to the documentation.) N
+(# The default value is: YES.) N
+() N
+(REFERENCES_LINK_SOURCE = YES) N
+() N
+(# If SOURCE_TOOLTIPS is enabled \(the default\) then hovering a hyperlink in the) N
+(# source code will show a tooltip with additional information such as prototype,) N
+(# brief description and links to the definition and documentation. Since this) N
+(# will make the HTML file larger and loading of large files a bit slower, you) N
+(# can opt to disable this feature.) N
+(Doxyfile) (Page 18/43) (maj 29, 23 10:43) title
+border
+grestore
+(Printed by Davjep) rhead
+(Doxyfile) (9/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (19-20) 10
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# The default value is: YES.) p n
+(# This tag requires that the tag SOURCE_BROWSER is set to YES.) N
+() N
+(SOURCE_TOOLTIPS        = YES) N
+() N
+(# If the USE_HTAGS tag is set to YES then the references to source code will) N
+(# point to the HTML generated by the htags\(1\) tool instead of doxygen built-in) N
+(# source browser. The htags tool is part of GNU's global source tagging system) N
+(# \(see https://www.gnu.org/software/global/global.html\). You will need version) N
+(# 4.8.6 or higher.) N
+(#) N
+(# To use it do the following:) N
+(# - Install the latest version of global) N
+(# - Enable SOURCE_BROWSER and USE_HTAGS in the configuration file) N
+(# - Make sure the INPUT points to the root of the source tree) N
+(# - Run doxygen as normal) N
+(#) N
+(# Doxygen will invoke htags \(and that will in turn invoke gtags\), so these) N
+(# tools must be available from the command line \(i.e. in the search path\).) N
+(#) N
+(# The result: instead of the source browser generated by doxygen, the links to) N
+(# source code will now point to the output of htags.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag SOURCE_BROWSER is set to YES.) N
+() N
+(USE_HTAGS              = NO) N
+() N
+(# If the VERBATIM_HEADERS tag is set the YES then doxygen will generate a) N
+(# verbatim copy of the header file for each class for which an include is) N
+(# specified. Set to NO to disable this.) N
+(# See also: Section \\class.) N
+(# The default value is: YES.) N
+() N
+(VERBATIM_HEADERS       = YES) N
+() N
+(# If the CLANG_ASSISTED_PARSING tag is set to YES then doxygen will use the) N
+(# clang parser \(see:) N
+(# http://clang.llvm.org/\) for more accurate parsing at the cost of reduced) N
+(# performance. This can be particularly helpful with template rich C++ code for) N
+(# which doxygen's built-in parser lacks the necessary type information.) N
+(# Note: The availability of this option depends on whether or not doxygen was) N
+(# generated with the -Duse_libclang=ON option for CMake.) N
+(# The default value is: NO.) N
+() N
+(CLANG_ASSISTED_PARSING = NO) N
+() N
+(# If clang assisted parsing is enabled and the CLANG_ADD_INC_PATHS tag is set to) N
+(# YES then doxygen will add the directory of each input to the include path.) N
+(# The default value is: YES.) N
+() N
+(CLANG_ADD_INC_PATHS    = YES) N
+() N
+(# If clang assisted parsing is enabled you can provide the compiler with command) N
+(# line options that you would normally use when invoking the compiler. Note that) N
+(# the include paths will already be set by doxygen for the files and directories) N
+(# specified with INPUT and INCLUDE_PATH.) N
+(# This tag requires that the tag CLANG_ASSISTED_PARSING is set to YES.) N
+() N
+(CLANG_OPTIONS          =) N
+() N
+(# If clang assisted parsing is enabled you can provide the clang parser with the) N
+(# path to the directory containing a file called compile_commands.json. This) N
+(Doxyfile) (Page 19/43) (maj 29, 23 10:43) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# file is the compilation database \(see:) p n
+(# http://clang.llvm.org/docs/HowToSetupToolingForLLVM.html\) containing the) N
+(# options used when the source files were built. This is equivalent to) N
+(# specifying the -p option to a clang tool, such as clang-check. These options) N
+(# will then be passed to the parser. Any options specified with CLANG_OPTIONS) N
+(# will be added as well.) N
+(# Note: The availability of this option depends on whether or not doxygen was) N
+(# generated with the -Duse_libclang=ON option for CMake.) N
+() N
+(CLANG_DATABASE_PATH    =) N
+() N
+(#---------------------------------------------------------------------------) N
+(# Configuration options related to the alphabetical class index) N
+(#---------------------------------------------------------------------------) N
+() N
+(# If the ALPHABETICAL_INDEX tag is set to YES, an alphabetical index of all) N
+(# compounds will be generated. Enable this if the project contains a lot of) N
+(# classes, structs, unions or interfaces.) N
+(# The default value is: YES.) N
+() N
+(ALPHABETICAL_INDEX     = YES) N
+() N
+(# In case all classes in a project start with a common prefix, all classes will) N
+(# be put under the same header in the alphabetical index. The IGNORE_PREFIX tag) N
+(# can be used to specify a prefix \(or a list of prefixes\) that should be ignored) N
+(# while generating the index headers.) N
+(# This tag requires that the tag ALPHABETICAL_INDEX is set to YES.) N
+() N
+(IGNORE_PREFIX          =) N
+() N
+(#---------------------------------------------------------------------------) N
+(# Configuration options related to the HTML output) N
+(#---------------------------------------------------------------------------) N
+() N
+(# If the GENERATE_HTML tag is set to YES, doxygen will generate HTML output) N
+(# The default value is: YES.) N
+() N
+(GENERATE_HTML          = NO) N
+() N
+(# The HTML_OUTPUT tag is used to specify where the HTML docs will be put. If a) N
+(# relative path is entered the value of OUTPUT_DIRECTORY will be put in front of) N
+(# it.) N
+(# The default directory is: html.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(HTML_OUTPUT            = html) N
+() N
+(# The HTML_FILE_EXTENSION tag can be used to specify the file extension for each) N
+(# generated HTML page \(for example: .htm, .php, .asp\).) N
+(# The default value is: .html.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(HTML_FILE_EXTENSION    = .html) N
+() N
+(# The HTML_HEADER tag can be used to specify a user-defined HTML header file for) N
+(# each generated HTML page. If the tag is left blank doxygen will generate a) N
+(# standard header.) N
+(#) N
+(# To get valid HTML the header file that includes any scripts and style sheets) N
+(# that doxygen needs, which is dependent on the configuration options used \(e.g.) N
+(# the setting GENERATE_TREEVIEW\). It is highly recommended to start with a) N
+(# default header using) N
+(Doxyfile) (Page 20/43) (maj 29, 23 10:43) title
+border
+grestore
+(Printed by Davjep) rhead
+(Doxyfile) (10/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (21-22) 11
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# doxygen -w html new_header.html new_footer.html new_stylesheet.css) p n
+(# YourConfigFile) N
+(# and then modify the file new_header.html. See also section "Doxygen usage") N
+(# for information on how to generate the default header that doxygen normally) N
+(# uses.) N
+(# Note: The header is subject to change so you typically have to regenerate the) N
+(# default header when upgrading to a newer version of doxygen. For a description) N
+(# of the possible markers and block names see the documentation.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(HTML_HEADER            =) N
+() N
+(# The HTML_FOOTER tag can be used to specify a user-defined HTML footer for each) N
+(# generated HTML page. If the tag is left blank doxygen will generate a standard) N
+(# footer. See HTML_HEADER for more information on how to generate a default) N
+(# footer and what special commands can be used inside the footer. See also) N
+(# section "Doxygen usage" for information on how to generate the default footer) N
+(# that doxygen normally uses.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(HTML_FOOTER            =) N
+() N
+(# The HTML_STYLESHEET tag can be used to specify a user-defined cascading style) N
+(# sheet that is used by each HTML page. It can be used to fine-tune the look of) N
+(# the HTML output. If left blank doxygen will generate a default style sheet.) N
+(# See also section "Doxygen usage" for information on how to generate the style) N
+(# sheet that doxygen normally uses.) N
+(# Note: It is recommended to use HTML_EXTRA_STYLESHEET instead of this tag, as) N
+(# it is more robust and this tag \(HTML_STYLESHEET\) will in the future become) N
+(# obsolete.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(HTML_STYLESHEET        =) N
+() N
+(# The HTML_EXTRA_STYLESHEET tag can be used to specify additional user-defined) N
+(# cascading style sheets that are included after the standard style sheets) N
+(# created by doxygen. Using this option one can overrule certain style aspects.) N
+(# This is preferred over using HTML_STYLESHEET since it does not replace the) N
+(# standard style sheet and is therefore more robust against future updates.) N
+(# Doxygen will copy the style sheet files to the output directory.) N
+(# Note: The order of the extra style sheet files is of importance \(e.g. the last) N
+(# style sheet in the list overrules the setting of the previous ones in the) N
+(# list\). For an example see the documentation.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(HTML_EXTRA_STYLESHEET  =) N
+() N
+(# The HTML_EXTRA_FILES tag can be used to specify one or more extra images or) N
+(# other source files which should be copied to the HTML output directory. Note) N
+(# that these files will be copied to the base HTML output directory. Use the) N
+(# $relpath^ marker in the HTML_HEADER and/or HTML_FOOTER files to load these) N
+(# files. In the HTML_STYLESHEET file, use the file name only. Also note that the) N
+(# files will be copied as-is; there are no commands or markers available.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(HTML_EXTRA_FILES       =) N
+() N
+(# The HTML_COLORSTYLE_HUE tag controls the color of the HTML output. Doxygen) N
+(# will adjust the colors in the style sheet and background images according to) N
+(# this color. Hue is specified as an angle on a colorwheel, see) N
+(# https://en.wikipedia.org/wiki/Hue for more information. For instance the value) N
+(# 0 represents red, 60 is yellow, 120 is green, 180 is cyan, 240 is blue, 300) N
+(Doxyfile) (Page 21/43) (maj 29, 23 10:43) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# purple, and 360 is red again.) p n
+(# Minimum value: 0, maximum value: 359, default value: 220.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(HTML_COLORSTYLE_HUE    = 220) N
+() N
+(# The HTML_COLORSTYLE_SAT tag controls the purity \(or saturation\) of the colors) N
+(# in the HTML output. For a value of 0 the output will use grayscales only. A) N
+(# value of 255 will produce the most vivid colors.) N
+(# Minimum value: 0, maximum value: 255, default value: 100.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(HTML_COLORSTYLE_SAT    = 100) N
+() N
+(# The HTML_COLORSTYLE_GAMMA tag controls the gamma correction applied to the) N
+(# luminance component of the colors in the HTML output. Values below 100) N
+(# gradually make the output lighter, whereas values above 100 make the output) N
+(# darker. The value divided by 100 is the actual gamma applied, so 80 represents) N
+(# a gamma of 0.8, The value 220 represents a gamma of 2.2, and 100 does not) N
+(# change the gamma.) N
+(# Minimum value: 40, maximum value: 240, default value: 80.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(HTML_COLORSTYLE_GAMMA  = 80) N
+() N
+(# If the HTML_TIMESTAMP tag is set to YES then the footer of each generated HTML) N
+(# page will contain the date and time when the page was generated. Setting this) N
+(# to YES can help to show when doxygen was last run and thus if the) N
+(# documentation is up to date.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(HTML_TIMESTAMP         = NO) N
+() N
+(# If the HTML_DYNAMIC_MENUS tag is set to YES then the generated HTML) N
+(# documentation will contain a main index with vertical navigation menus that) N
+(# are dynamically created via JavaScript. If disabled, the navigation index will) N
+(# consists of multiple levels of tabs that are statically embedded in every HTML) N
+(# page. Disable this option to support browsers that do not have JavaScript,) N
+(# like the Qt help browser.) N
+(# The default value is: YES.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(HTML_DYNAMIC_MENUS     = YES) N
+() N
+(# If the HTML_DYNAMIC_SECTIONS tag is set to YES then the generated HTML) N
+(# documentation will contain sections that can be hidden and shown after the) N
+(# page has loaded.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(HTML_DYNAMIC_SECTIONS  = NO) N
+() N
+(# With HTML_INDEX_NUM_ENTRIES one can control the preferred number of entries) N
+(# shown in the various tree structured indices initially; the user can expand) N
+(# and collapse entries dynamically later on. Doxygen will expand the tree to) N
+(# such a level that at most the specified number of entries are visible \(unless) N
+(# a fully collapsed tree already exceeds this amount\). So setting the number of) N
+(# entries 1 will produce a full collapsed tree by default. 0 is a special value) N
+(# representing an infinite number of entries and will result in a full expanded) N
+(# tree by default.) N
+(# Minimum value: 0, maximum value: 9999, default value: 100.) N
+(Doxyfile) (Page 22/43) (maj 29, 23 10:43) title
+border
+grestore
+(Printed by Davjep) rhead
+(Doxyfile) (11/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (23-24) 12
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# This tag requires that the tag GENERATE_HTML is set to YES.) p n
+() N
+(HTML_INDEX_NUM_ENTRIES = 100) N
+() N
+(# If the GENERATE_DOCSET tag is set to YES, additional index files will be) N
+(# generated that can be used as input for Apple's Xcode 3 integrated development) N
+(# environment \(see:) N
+(# https://developer.apple.com/xcode/\), introduced with OSX 10.5 \(Leopard\). To) N
+(# create a documentation set, doxygen will generate a Makefile in the HTML) N
+(# output directory. Running make will produce the docset in that directory and) N
+(# running make install will install the docset in) N
+(# ~/Library/Developer/Shared/Documentation/DocSets so that Xcode will find it at) N
+(# startup. See https://developer.apple.com/library/archive/featuredarticles/Doxy) N
+(# genXcode/_index.html for more information.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(GENERATE_DOCSET        = NO) N
+() N
+(# This tag determines the name of the docset feed. A documentation feed provides) N
+(# an umbrella under which multiple documentation sets from a single provider) N
+(# \(such as a company or product suite\) can be grouped.) N
+(# The default value is: Doxygen generated docs.) N
+(# This tag requires that the tag GENERATE_DOCSET is set to YES.) N
+() N
+(DOCSET_FEEDNAME        = "Doxygen generated docs") N
+() N
+(# This tag specifies a string that should uniquely identify the documentation) N
+(# set bundle. This should be a reverse domain-name style string, e.g.) N
+(# com.mycompany.MyDocSet. Doxygen will append .docset to the name.) N
+(# The default value is: org.doxygen.Project.) N
+(# This tag requires that the tag GENERATE_DOCSET is set to YES.) N
+() N
+(DOCSET_BUNDLE_ID       = org.doxygen.Project) N
+() N
+(# The DOCSET_PUBLISHER_ID tag specifies a string that should uniquely identify) N
+(# the documentation publisher. This should be a reverse domain-name style) N
+(# string, e.g. com.mycompany.MyDocSet.documentation.) N
+(# The default value is: org.doxygen.Publisher.) N
+(# This tag requires that the tag GENERATE_DOCSET is set to YES.) N
+() N
+(DOCSET_PUBLISHER_ID    = org.doxygen.Publisher) N
+() N
+(# The DOCSET_PUBLISHER_NAME tag identifies the documentation publisher.) N
+(# The default value is: Publisher.) N
+(# This tag requires that the tag GENERATE_DOCSET is set to YES.) N
+() N
+(DOCSET_PUBLISHER_NAME  = Publisher) N
+() N
+(# If the GENERATE_HTMLHELP tag is set to YES then doxygen generates three) N
+(# additional HTML index files: index.hhp, index.hhc, and index.hhk. The) N
+(# index.hhp is a project file that can be read by Microsoft's HTML Help Workshop) N
+(# \(see:) N
+(# https://www.microsoft.com/en-us/download/details.aspx?id=21138\) on Windows.) N
+(#) N
+(# The HTML Help Workshop contains a compiler that can convert all HTML output) N
+(# generated by doxygen into a single compiled HTML file \(.chm\). Compiled HTML) N
+(# files are now used as the Windows 98 help format, and will replace the old) N
+(# Windows help format \(.hlp\) on all Windows platforms in the future. Compressed) N
+(# HTML files also contain an index, a table of contents, and you can search for) N
+(# words in the documentation. The HTML workshop also contains a viewer for) N
+(# compressed HTML files.) N
+(Doxyfile) (Page 23/43) (maj 29, 23 10:43) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# The default value is: NO.) p n
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(GENERATE_HTMLHELP      = NO) N
+() N
+(# The CHM_FILE tag can be used to specify the file name of the resulting .chm) N
+(# file. You can add a path in front of the file if the result should not be) N
+(# written to the html output directory.) N
+(# This tag requires that the tag GENERATE_HTMLHELP is set to YES.) N
+() N
+(CHM_FILE               =) N
+() N
+(# The HHC_LOCATION tag can be used to specify the location \(absolute path) N
+(# including file name\) of the HTML help compiler \(hhc.exe\). If non-empty,) N
+(# doxygen will try to run the HTML help compiler on the generated index.hhp.) N
+(# The file has to be specified with full path.) N
+(# This tag requires that the tag GENERATE_HTMLHELP is set to YES.) N
+() N
+(HHC_LOCATION           =) N
+() N
+(# The GENERATE_CHI flag controls if a separate .chi index file is generated) N
+(# \(YES\) or that it should be included in the main .chm file \(NO\).) N
+(# The default value is: NO.) N
+(# This tag requires that the tag GENERATE_HTMLHELP is set to YES.) N
+() N
+(GENERATE_CHI           = NO) N
+() N
+(# The CHM_INDEX_ENCODING is used to encode HtmlHelp index \(hhk\), content \(hhc\)) N
+(# and project file content.) N
+(# This tag requires that the tag GENERATE_HTMLHELP is set to YES.) N
+() N
+(CHM_INDEX_ENCODING     =) N
+() N
+(# The BINARY_TOC flag controls whether a binary table of contents is generated) N
+(# \(YES\) or a normal table of contents \(NO\) in the .chm file. Furthermore it) N
+(# enables the Previous and Next buttons.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag GENERATE_HTMLHELP is set to YES.) N
+() N
+(BINARY_TOC             = NO) N
+() N
+(# The TOC_EXPAND flag can be set to YES to add extra items for group members to) N
+(# the table of contents of the HTML help documentation and to the tree view.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag GENERATE_HTMLHELP is set to YES.) N
+() N
+(TOC_EXPAND             = NO) N
+() N
+(# If the GENERATE_QHP tag is set to YES and both QHP_NAMESPACE and) N
+(# QHP_VIRTUAL_FOLDER are set, an additional index file will be generated that) N
+(# can be used as input for Qt's qhelpgenerator to generate a Qt Compressed Help) N
+(# \(.qch\) of the generated HTML documentation.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(GENERATE_QHP           = NO) N
+() N
+(# If the QHG_LOCATION tag is specified, the QCH_FILE tag can be used to specify) N
+(# the file name of the resulting .qch file. The path specified is relative to) N
+(# the HTML output folder.) N
+(# This tag requires that the tag GENERATE_QHP is set to YES.) N
+() N
+(Doxyfile) (Page 24/43) (maj 29, 23 10:43) title
+border
+grestore
+(Printed by Davjep) rhead
+(Doxyfile) (12/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (25-26) 13
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(QCH_FILE               =) p n
+() N
+(# The QHP_NAMESPACE tag specifies the namespace to use when generating Qt Help) N
+(# Project output. For more information please see Qt Help Project / Namespace) N
+(# \(see:) N
+(# https://doc.qt.io/archives/qt-4.8/qthelpproject.html#namespace\).) N
+(# The default value is: org.doxygen.Project.) N
+(# This tag requires that the tag GENERATE_QHP is set to YES.) N
+() N
+(QHP_NAMESPACE          = org.doxygen.Project) N
+() N
+(# The QHP_VIRTUAL_FOLDER tag specifies the namespace to use when generating Qt) N
+(# Help Project output. For more information please see Qt Help Project / Virtual) N
+(# Folders \(see:) N
+(# https://doc.qt.io/archives/qt-4.8/qthelpproject.html#virtual-folders\).) N
+(# The default value is: doc.) N
+(# This tag requires that the tag GENERATE_QHP is set to YES.) N
+() N
+(QHP_VIRTUAL_FOLDER     = doc) N
+() N
+(# If the QHP_CUST_FILTER_NAME tag is set, it specifies the name of a custom) N
+(# filter to add. For more information please see Qt Help Project / Custom) N
+(# Filters \(see:) N
+(# https://doc.qt.io/archives/qt-4.8/qthelpproject.html#custom-filters\).) N
+(# This tag requires that the tag GENERATE_QHP is set to YES.) N
+() N
+(QHP_CUST_FILTER_NAME   =) N
+() N
+(# The QHP_CUST_FILTER_ATTRS tag specifies the list of the attributes of the) N
+(# custom filter to add. For more information please see Qt Help Project / Custom) N
+(# Filters \(see:) N
+(# https://doc.qt.io/archives/qt-4.8/qthelpproject.html#custom-filters\).) N
+(# This tag requires that the tag GENERATE_QHP is set to YES.) N
+() N
+(QHP_CUST_FILTER_ATTRS  =) N
+() N
+(# The QHP_SECT_FILTER_ATTRS tag specifies the list of the attributes this) N
+(# project's filter section matches. Qt Help Project / Filter Attributes \(see:) N
+(# https://doc.qt.io/archives/qt-4.8/qthelpproject.html#filter-attributes\).) N
+(# This tag requires that the tag GENERATE_QHP is set to YES.) N
+() N
+(QHP_SECT_FILTER_ATTRS  =) N
+() N
+(# The QHG_LOCATION tag can be used to specify the location \(absolute path) N
+(# including file name\) of Qt's qhelpgenerator. If non-empty doxygen will try to) N
+(# run qhelpgenerator on the generated .qhp file.) N
+(# This tag requires that the tag GENERATE_QHP is set to YES.) N
+() N
+(QHG_LOCATION           =) N
+() N
+(# If the GENERATE_ECLIPSEHELP tag is set to YES, additional index files will be) N
+(# generated, together with the HTML files, they form an Eclipse help plugin. To) N
+(# install this plugin and make it available under the help contents menu in) N
+(# Eclipse, the contents of the directory containing the HTML and XML files needs) N
+(# to be copied into the plugins directory of eclipse. The name of the directory) N
+(# within the plugins directory should be the same as the ECLIPSE_DOC_ID value.) N
+(# After copying Eclipse needs to be restarted before the help appears.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(GENERATE_ECLIPSEHELP   = NO) N
+() N
+(Doxyfile) (Page 25/43) (maj 29, 23 10:43) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# A unique identifier for the Eclipse help plugin. When installing the plugin) p n
+(# the directory name containing the HTML and XML files should also have this) N
+(# name. Each documentation set should have its own identifier.) N
+(# The default value is: org.doxygen.Project.) N
+(# This tag requires that the tag GENERATE_ECLIPSEHELP is set to YES.) N
+() N
+(ECLIPSE_DOC_ID         = org.doxygen.Project) N
+() N
+(# If you want full control over the layout of the generated HTML pages it might) N
+(# be necessary to disable the index and replace it with your own. The) N
+(# DISABLE_INDEX tag can be used to turn on/off the condensed index \(tabs\) at top) N
+(# of each HTML page. A value of NO enables the index and the value YES disables) N
+(# it. Since the tabs in the index contain the same information as the navigation) N
+(# tree, you can set this option to YES if you also set GENERATE_TREEVIEW to YES.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(DISABLE_INDEX          = NO) N
+() N
+(# The GENERATE_TREEVIEW tag is used to specify whether a tree-like index) N
+(# structure should be generated to display hierarchical information. If the tag) N
+(# value is set to YES, a side panel will be generated containing a tree-like) N
+(# index structure \(just like the one that is generated for HTML Help\). For this) N
+(# to work a browser that supports JavaScript, DHTML, CSS and frames is required) N
+(# \(i.e. any modern browser\). Windows users are probably better off using the) N
+(# HTML help feature. Via custom style sheets \(see HTML_EXTRA_STYLESHEET\) one can) N
+(# further fine-tune the look of the index. As an example, the default style) N
+(# sheet generated by doxygen has an example that shows how to put an image at) N
+(# the root of the tree instead of the PROJECT_NAME. Since the tree basically has) N
+(# the same information as the tab index, you could consider setting) N
+(# DISABLE_INDEX to YES when enabling this option.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(GENERATE_TREEVIEW      = NO) N
+() N
+(# The ENUM_VALUES_PER_LINE tag can be used to set the number of enum values that) N
+(# doxygen will group on one line in the generated HTML documentation.) N
+(#) N
+(# Note that a value of 0 will completely suppress the enum values from appearing) N
+(# in the overview section.) N
+(# Minimum value: 0, maximum value: 20, default value: 4.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(ENUM_VALUES_PER_LINE   = 4) N
+() N
+(# If the treeview is enabled \(see GENERATE_TREEVIEW\) then this tag can be used) N
+(# to set the initial width \(in pixels\) of the frame in which the tree is shown.) N
+(# Minimum value: 0, maximum value: 1500, default value: 250.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(TREEVIEW_WIDTH         = 250) N
+() N
+(# If the EXT_LINKS_IN_WINDOW option is set to YES, doxygen will open links to) N
+(# external symbols imported via tag files in a separate window.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(EXT_LINKS_IN_WINDOW    = NO) N
+() N
+(# If the HTML_FORMULA_FORMAT option is set to svg, doxygen will use the pdf2svg) N
+(# tool \(see https://github.com/dawbarton/pdf2svg\) or inkscape \(see) N
+(Doxyfile) (Page 26/43) (maj 29, 23 10:43) title
+border
+grestore
+(Printed by Davjep) rhead
+(Doxyfile) (13/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (27-28) 14
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# https://inkscape.org\) to generate formulas as SVG images instead of PNGs for) p n
+(# the HTML output. These images will generally look nicer at scaled resolutions.) N
+(# Possible values are: png \(the default\) and svg \(looks nicer but requires the) N
+(# pdf2svg or inkscape tool\).) N
+(# The default value is: png.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(HTML_FORMULA_FORMAT    = png) N
+() N
+(# Use this tag to change the font size of LaTeX formulas included as images in) N
+(# the HTML documentation. When you change the font size after a successful) N
+(# doxygen run you need to manually remove any form_*.png images from the HTML) N
+(# output directory to force them to be regenerated.) N
+(# Minimum value: 8, maximum value: 50, default value: 10.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(FORMULA_FONTSIZE       = 10) N
+() N
+(# Use the FORMULA_TRANSPARENT tag to determine whether or not the images) N
+(# generated for formulas are transparent PNGs. Transparent PNGs are not) N
+(# supported properly for IE 6.0, but are supported on all modern browsers.) N
+(#) N
+(# Note that when changing this option you need to delete any form_*.png files in) N
+(# the HTML output directory before the changes have effect.) N
+(# The default value is: YES.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(FORMULA_TRANSPARENT    = YES) N
+() N
+(# The FORMULA_MACROFILE can contain LaTeX \\newcommand and \\renewcommand commands) N
+(# to create new LaTeX commands to be used in formulas as building blocks. See) N
+(# the section "Including formulas" for details.) N
+() N
+(FORMULA_MACROFILE      =) N
+() N
+(# Enable the USE_MATHJAX option to render LaTeX formulas using MathJax \(see) N
+(# https://www.mathjax.org\) which uses client side JavaScript for the rendering) N
+(# instead of using pre-rendered bitmaps. Use this if you do not have LaTeX) N
+(# installed or if you want to formulas look prettier in the HTML output. When) N
+(# enabled you may also need to install MathJax separately and configure the path) N
+(# to it using the MATHJAX_RELPATH option.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(USE_MATHJAX            = NO) N
+() N
+(# When MathJax is enabled you can set the default output format to be used for) N
+(# the MathJax output. See the MathJax site \(see:) N
+(# http://docs.mathjax.org/en/v2.7-latest/output.html\) for more details.) N
+(# Possible values are: HTML-CSS \(which is slower, but has the best) N
+(# compatibility\), NativeMML \(i.e. MathML\) and SVG.) N
+(# The default value is: HTML-CSS.) N
+(# This tag requires that the tag USE_MATHJAX is set to YES.) N
+() N
+(MATHJAX_FORMAT         = HTML-CSS) N
+() N
+(# When MathJax is enabled you need to specify the location relative to the HTML) N
+(# output directory using the MATHJAX_RELPATH option. The destination directory) N
+(# should contain the MathJax.js script. For instance, if the mathjax directory) N
+(# is located at the same level as the HTML output directory, then) N
+(# MATHJAX_RELPATH should be ../mathjax. The default value points to the MathJax) N
+(# Content Delivery Network so you can quickly see the result without installing) N
+(Doxyfile) (Page 27/43) (maj 29, 23 10:43) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# MathJax. However, it is strongly recommended to install a local copy of) p n
+(# MathJax from https://www.mathjax.org before deployment.) N
+(# The default value is: https://cdn.jsdelivr.net/npm/mathjax@2.) N
+(# This tag requires that the tag USE_MATHJAX is set to YES.) N
+() N
+(MATHJAX_RELPATH        = https://cdn.jsdelivr.net/npm/mathjax@2) N
+() N
+(# The MATHJAX_EXTENSIONS tag can be used to specify one or more MathJax) N
+(# extension names that should be enabled during MathJax rendering. For example) N
+(# MATHJAX_EXTENSIONS = TeX/AMSmath TeX/AMSsymbols) N
+(# This tag requires that the tag USE_MATHJAX is set to YES.) N
+() N
+(MATHJAX_EXTENSIONS     =) N
+() N
+(# The MATHJAX_CODEFILE tag can be used to specify a file with javascript pieces) N
+(# of code that will be used on startup of the MathJax code. See the MathJax site) N
+(# \(see:) N
+(# http://docs.mathjax.org/en/v2.7-latest/output.html\) for more details. For an) N
+(# example see the documentation.) N
+(# This tag requires that the tag USE_MATHJAX is set to YES.) N
+() N
+(MATHJAX_CODEFILE       =) N
+() N
+(# When the SEARCHENGINE tag is enabled doxygen will generate a search box for) N
+(# the HTML output. The underlying search engine uses javascript and DHTML and) N
+(# should work on any modern browser. Note that when using HTML help) N
+(# \(GENERATE_HTMLHELP\), Qt help \(GENERATE_QHP\), or docsets \(GENERATE_DOCSET\)) N
+(# there is already a search function so this one should typically be disabled.) N
+(# For large projects the javascript based search engine can be slow, then) N
+(# enabling SERVER_BASED_SEARCH may provide a better solution. It is possible to) N
+(# search using the keyboard; to jump to the search box use <access key> + S) N
+(# \(what the <access key> is depends on the OS and browser, but it is typically) N
+(# <CTRL>, <ALT>/<option>, or both\). Inside the search box use the <cursor down) N
+(# key> to jump into the search results window, the results can be navigated) N
+(# using the <cursor keys>. Press <Enter> to select an item or <escape> to cancel) N
+(# the search. The filter options can be selected when the cursor is inside the) N
+(# search box by pressing <Shift>+<cursor down>. Also here use the <cursor keys>) N
+(# to select a filter and <Enter> or <escape> to activate or cancel the filter) N
+(# option.) N
+(# The default value is: YES.) N
+(# This tag requires that the tag GENERATE_HTML is set to YES.) N
+() N
+(SEARCHENGINE           = YES) N
+() N
+(# When the SERVER_BASED_SEARCH tag is enabled the search engine will be) N
+(# implemented using a web server instead of a web client using JavaScript. There) N
+(# are two flavors of web server based searching depending on the EXTERNAL_SEARCH) N
+(# setting. When disabled, doxygen will generate a PHP script for searching and) N
+(# an index file used by the script. When EXTERNAL_SEARCH is enabled the indexing) N
+(# and searching needs to be provided by external tools. See the section) N
+(# "External Indexing and Searching" for details.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag SEARCHENGINE is set to YES.) N
+() N
+(SERVER_BASED_SEARCH    = NO) N
+() N
+(# When EXTERNAL_SEARCH tag is enabled doxygen will no longer generate the PHP) N
+(# script for searching. Instead the search results are written to an XML file) N
+(# which needs to be processed by an external indexer. Doxygen will invoke an) N
+(# external search engine pointed to by the SEARCHENGINE_URL option to obtain the) N
+(# search results.) N
+(#) N
+(Doxyfile) (Page 28/43) (maj 29, 23 10:43) title
+border
+grestore
+(Printed by Davjep) rhead
+(Doxyfile) (14/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (29-30) 15
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# Doxygen ships with an example indexer \(doxyindexer\) and search engine) p n
+(# \(doxysearch.cgi\) which are based on the open source search engine library) N
+(# Xapian \(see:) N
+(# https://xapian.org/\).) N
+(#) N
+(# See the section "External Indexing and Searching" for details.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag SEARCHENGINE is set to YES.) N
+() N
+(EXTERNAL_SEARCH        = NO) N
+() N
+(# The SEARCHENGINE_URL should point to a search engine hosted by a web server) N
+(# which will return the search results when EXTERNAL_SEARCH is enabled.) N
+(#) N
+(# Doxygen ships with an example indexer \(doxyindexer\) and search engine) N
+(# \(doxysearch.cgi\) which are based on the open source search engine library) N
+(# Xapian \(see:) N
+(# https://xapian.org/\). See the section "External Indexing and Searching" for) N
+(# details.) N
+(# This tag requires that the tag SEARCHENGINE is set to YES.) N
+() N
+(SEARCHENGINE_URL       =) N
+() N
+(# When SERVER_BASED_SEARCH and EXTERNAL_SEARCH are both enabled the unindexed) N
+(# search data is written to a file for indexing by an external tool. With the) N
+(# SEARCHDATA_FILE tag the name of this file can be specified.) N
+(# The default file is: searchdata.xml.) N
+(# This tag requires that the tag SEARCHENGINE is set to YES.) N
+() N
+(SEARCHDATA_FILE        = searchdata.xml) N
+() N
+(# When SERVER_BASED_SEARCH and EXTERNAL_SEARCH are both enabled the) N
+(# EXTERNAL_SEARCH_ID tag can be used as an identifier for the project. This is) N
+(# useful in combination with EXTRA_SEARCH_MAPPINGS to search through multiple) N
+(# projects and redirect the results back to the right project.) N
+(# This tag requires that the tag SEARCHENGINE is set to YES.) N
+() N
+(EXTERNAL_SEARCH_ID     =) N
+() N
+(# The EXTRA_SEARCH_MAPPINGS tag can be used to enable searching through doxygen) N
+(# projects other than the one defined by this configuration file, but that are) N
+(# all added to the same external search index. Each project needs to have a) N
+(# unique id set via EXTERNAL_SEARCH_ID. The search mapping then maps the id of) N
+(# to a relative location where the documentation can be found. The format is:) N
+(# EXTRA_SEARCH_MAPPINGS = tagname1=loc1 tagname2=loc2 ...) N
+(# This tag requires that the tag SEARCHENGINE is set to YES.) N
+() N
+(EXTRA_SEARCH_MAPPINGS  =) N
+() N
+(#---------------------------------------------------------------------------) N
+(# Configuration options related to the LaTeX output) N
+(#---------------------------------------------------------------------------) N
+() N
+(# If the GENERATE_LATEX tag is set to YES, doxygen will generate LaTeX output.) N
+(# The default value is: YES.) N
+() N
+(GENERATE_LATEX         = YES) N
+() N
+(# The LATEX_OUTPUT tag is used to specify where the LaTeX docs will be put. If a) N
+(# relative path is entered the value of OUTPUT_DIRECTORY will be put in front of) N
+(# it.) N
+(# The default directory is: latex.) N
+(Doxyfile) (Page 29/43) (maj 29, 23 10:43) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# This tag requires that the tag GENERATE_LATEX is set to YES.) p n
+() N
+(LATEX_OUTPUT           = latex) N
+() N
+(# The LATEX_CMD_NAME tag can be used to specify the LaTeX command name to be) N
+(# invoked.) N
+(#) N
+(# Note that when not enabling USE_PDFLATEX the default is latex when enabling) N
+(# USE_PDFLATEX the default is pdflatex and when in the later case latex is) N
+(# chosen this is overwritten by pdflatex. For specific output languages the) N
+(# default can have been set differently, this depends on the implementation of) N
+(# the output language.) N
+(# This tag requires that the tag GENERATE_LATEX is set to YES.) N
+() N
+(LATEX_CMD_NAME         =) N
+() N
+(# The MAKEINDEX_CMD_NAME tag can be used to specify the command name to generate) N
+(# index for LaTeX.) N
+(# Note: This tag is used in the Makefile / make.bat.) N
+(# See also: LATEX_MAKEINDEX_CMD for the part in the generated output file) N
+(# \(.tex\).) N
+(# The default file is: makeindex.) N
+(# This tag requires that the tag GENERATE_LATEX is set to YES.) N
+() N
+(MAKEINDEX_CMD_NAME     = makeindex) N
+() N
+(# The LATEX_MAKEINDEX_CMD tag can be used to specify the command name to) N
+(# generate index for LaTeX. In case there is no backslash \(\\\) as first character) N
+(# it will be automatically added in the LaTeX code.) N
+(# Note: This tag is used in the generated output file \(.tex\).) N
+(# See also: MAKEINDEX_CMD_NAME for the part in the Makefile / make.bat.) N
+(# The default value is: makeindex.) N
+(# This tag requires that the tag GENERATE_LATEX is set to YES.) N
+() N
+(LATEX_MAKEINDEX_CMD    = makeindex) N
+() N
+(# If the COMPACT_LATEX tag is set to YES, doxygen generates more compact LaTeX) N
+(# documents. This may be useful for small projects and may help to save some) N
+(# trees in general.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag GENERATE_LATEX is set to YES.) N
+() N
+(COMPACT_LATEX          = NO) N
+() N
+(# The PAPER_TYPE tag can be used to set the paper type that is used by the) N
+(# printer.) N
+(# Possible values are: a4 \(210 x 297 mm\), letter \(8.5 x 11 inches\), legal \(8.5 x) N
+(# 14 inches\) and executive \(7.25 x 10.5 inches\).) N
+(# The default value is: a4.) N
+(# This tag requires that the tag GENERATE_LATEX is set to YES.) N
+() N
+(PAPER_TYPE             = a4) N
+() N
+(# The EXTRA_PACKAGES tag can be used to specify one or more LaTeX package names) N
+(# that should be included in the LaTeX output. The package can be specified just) N
+(# by its name or with the correct syntax as to be used with the LaTeX) N
+(# \\usepackage command. To get the times font for instance you can specify :) N
+(# EXTRA_PACKAGES=times or EXTRA_PACKAGES={times}) N
+(# To use the option intlimits with the amsmath package you can specify:) N
+(# EXTRA_PACKAGES=[intlimits]{amsmath}) N
+(# If left blank no extra packages will be included.) N
+(# This tag requires that the tag GENERATE_LATEX is set to YES.) N
+(Doxyfile) (Page 30/43) (maj 29, 23 10:43) title
+border
+grestore
+(Printed by Davjep) rhead
+(Doxyfile) (15/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (31-32) 16
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p n
+(EXTRA_PACKAGES         =) N
+() N
+(# The LATEX_HEADER tag can be used to specify a personal LaTeX header for the) N
+(# generated LaTeX document. The header should contain everything until the first) N
+(# chapter. If it is left blank doxygen will generate a standard header. See) N
+(# section "Doxygen usage" for information on how to let doxygen write the) N
+(# default header to a separate file.) N
+(#) N
+(# Note: Only use a user-defined header if you know what you are doing! The) N
+(# following commands have a special meaning inside the header: $title,) N
+(# $datetime, $date, $doxygenversion, $projectname, $projectnumber,) N
+(# $projectbrief, $projectlogo. Doxygen will replace $title with the empty) N
+(# string, for the replacement values of the other commands the user is referred) N
+(# to HTML_HEADER.) N
+(# This tag requires that the tag GENERATE_LATEX is set to YES.) N
+() N
+(LATEX_HEADER           =) N
+() N
+(# The LATEX_FOOTER tag can be used to specify a personal LaTeX footer for the) N
+(# generated LaTeX document. The footer should contain everything after the last) N
+(# chapter. If it is left blank doxygen will generate a standard footer. See) N
+(# LATEX_HEADER for more information on how to generate a default footer and what) N
+(# special commands can be used inside the footer.) N
+(#) N
+(# Note: Only use a user-defined footer if you know what you are doing!) N
+(# This tag requires that the tag GENERATE_LATEX is set to YES.) N
+() N
+(LATEX_FOOTER           =) N
+() N
+(# The LATEX_EXTRA_STYLESHEET tag can be used to specify additional user-defined) N
+(# LaTeX style sheets that are included after the standard style sheets created) N
+(# by doxygen. Using this option one can overrule certain style aspects. Doxygen) N
+(# will copy the style sheet files to the output directory.) N
+(# Note: The order of the extra style sheet files is of importance \(e.g. the last) N
+(# style sheet in the list overrules the setting of the previous ones in the) N
+(# list\).) N
+(# This tag requires that the tag GENERATE_LATEX is set to YES.) N
+() N
+(LATEX_EXTRA_STYLESHEET =) N
+() N
+(# The LATEX_EXTRA_FILES tag can be used to specify one or more extra images or) N
+(# other source files which should be copied to the LATEX_OUTPUT output) N
+(# directory. Note that the files will be copied as-is; there are no commands or) N
+(# markers available.) N
+(# This tag requires that the tag GENERATE_LATEX is set to YES.) N
+() N
+(LATEX_EXTRA_FILES      =) N
+() N
+(# If the PDF_HYPERLINKS tag is set to YES, the LaTeX that is generated is) N
+(# prepared for conversion to PDF \(using ps2pdf or pdflatex\). The PDF file will) N
+(# contain links \(just like the HTML output\) instead of page references. This) N
+(# makes the output suitable for online browsing using a PDF viewer.) N
+(# The default value is: YES.) N
+(# This tag requires that the tag GENERATE_LATEX is set to YES.) N
+() N
+(PDF_HYPERLINKS         = YES) N
+() N
+(# If the USE_PDFLATEX tag is set to YES, doxygen will use the engine as) N
+(# specified with LATEX_CMD_NAME to generate the PDF file directly from the LaTeX) N
+(# files. Set this option to YES, to get a higher quality PDF documentation.) N
+(#) N
+(Doxyfile) (Page 31/43) (maj 29, 23 10:43) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# See also section LATEX_CMD_NAME for selecting the engine.) p n
+(# The default value is: YES.) N
+(# This tag requires that the tag GENERATE_LATEX is set to YES.) N
+() N
+(USE_PDFLATEX           = YES) N
+() N
+(# If the LATEX_BATCHMODE tag is set to YES, doxygen will add the \\batchmode) N
+(# command to the generated LaTeX files. This will instruct LaTeX to keep running) N
+(# if errors occur, instead of asking the user for help. This option is also used) N
+(# when generating formulas in HTML.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag GENERATE_LATEX is set to YES.) N
+() N
+(LATEX_BATCHMODE        = NO) N
+() N
+(# If the LATEX_HIDE_INDICES tag is set to YES then doxygen will not include the) N
+(# index chapters \(such as File Index, Compound Index, etc.\) in the output.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag GENERATE_LATEX is set to YES.) N
+() N
+(LATEX_HIDE_INDICES     = NO) N
+() N
+(# If the LATEX_SOURCE_CODE tag is set to YES then doxygen will include source) N
+(# code with syntax highlighting in the LaTeX output.) N
+(#) N
+(# Note that which sources are shown also depends on other settings such as) N
+(# SOURCE_BROWSER.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag GENERATE_LATEX is set to YES.) N
+() N
+(LATEX_SOURCE_CODE      = NO) N
+() N
+(# The LATEX_BIB_STYLE tag can be used to specify the style to use for the) N
+(# bibliography, e.g. plainnat, or ieeetr. See) N
+(# https://en.wikipedia.org/wiki/BibTeX and \\cite for more info.) N
+(# The default value is: plain.) N
+(# This tag requires that the tag GENERATE_LATEX is set to YES.) N
+() N
+(LATEX_BIB_STYLE        = plain) N
+() N
+(# If the LATEX_TIMESTAMP tag is set to YES then the footer of each generated) N
+(# page will contain the date and time when the page was generated. Setting this) N
+(# to NO can help when comparing the output of multiple runs.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag GENERATE_LATEX is set to YES.) N
+() N
+(LATEX_TIMESTAMP        = NO) N
+() N
+(# The LATEX_EMOJI_DIRECTORY tag is used to specify the \(relative or absolute\)) N
+(# path from which the emoji images will be read. If a relative path is entered,) N
+(# it will be relative to the LATEX_OUTPUT directory. If left blank the) N
+(# LATEX_OUTPUT directory will be used.) N
+(# This tag requires that the tag GENERATE_LATEX is set to YES.) N
+() N
+(LATEX_EMOJI_DIRECTORY  =) N
+() N
+(#---------------------------------------------------------------------------) N
+(# Configuration options related to the RTF output) N
+(#---------------------------------------------------------------------------) N
+() N
+(# If the GENERATE_RTF tag is set to YES, doxygen will generate RTF output. The) N
+(# RTF output is optimized for Word 97 and may not look too pretty with other RTF) N
+(Doxyfile) (Page 32/43) (maj 29, 23 10:43) title
+border
+grestore
+(Printed by Davjep) rhead
+(Doxyfile) (16/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (33-34) 17
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# readers/editors.) p n
+(# The default value is: NO.) N
+() N
+(GENERATE_RTF           = NO) N
+() N
+(# The RTF_OUTPUT tag is used to specify where the RTF docs will be put. If a) N
+(# relative path is entered the value of OUTPUT_DIRECTORY will be put in front of) N
+(# it.) N
+(# The default directory is: rtf.) N
+(# This tag requires that the tag GENERATE_RTF is set to YES.) N
+() N
+(RTF_OUTPUT             = rtf) N
+() N
+(# If the COMPACT_RTF tag is set to YES, doxygen generates more compact RTF) N
+(# documents. This may be useful for small projects and may help to save some) N
+(# trees in general.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag GENERATE_RTF is set to YES.) N
+() N
+(COMPACT_RTF            = NO) N
+() N
+(# If the RTF_HYPERLINKS tag is set to YES, the RTF that is generated will) N
+(# contain hyperlink fields. The RTF file will contain links \(just like the HTML) N
+(# output\) instead of page references. This makes the output suitable for online) N
+(# browsing using Word or some other Word compatible readers that support those) N
+(# fields.) N
+(#) N
+(# Note: WordPad \(write\) and others do not support links.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag GENERATE_RTF is set to YES.) N
+() N
+(RTF_HYPERLINKS         = NO) N
+() N
+(# Load stylesheet definitions from file. Syntax is similar to doxygen's) N
+(# configuration file, i.e. a series of assignments. You only have to provide) N
+(# replacements, missing definitions are set to their default value.) N
+(#) N
+(# See also section "Doxygen usage" for information on how to generate the) N
+(# default style sheet that doxygen normally uses.) N
+(# This tag requires that the tag GENERATE_RTF is set to YES.) N
+() N
+(RTF_STYLESHEET_FILE    =) N
+() N
+(# Set optional variables used in the generation of an RTF document. Syntax is) N
+(# similar to doxygen's configuration file. A template extensions file can be) N
+(# generated using doxygen -e rtf extensionFile.) N
+(# This tag requires that the tag GENERATE_RTF is set to YES.) N
+() N
+(RTF_EXTENSIONS_FILE    =) N
+() N
+(# If the RTF_SOURCE_CODE tag is set to YES then doxygen will include source code) N
+(# with syntax highlighting in the RTF output.) N
+(#) N
+(# Note that which sources are shown also depends on other settings such as) N
+(# SOURCE_BROWSER.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag GENERATE_RTF is set to YES.) N
+() N
+(RTF_SOURCE_CODE        = NO) N
+() N
+(#---------------------------------------------------------------------------) N
+(# Configuration options related to the man page output) N
+(Doxyfile) (Page 33/43) (maj 29, 23 10:43) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(#---------------------------------------------------------------------------) p n
+() N
+(# If the GENERATE_MAN tag is set to YES, doxygen will generate man pages for) N
+(# classes and files.) N
+(# The default value is: NO.) N
+() N
+(GENERATE_MAN           = NO) N
+() N
+(# The MAN_OUTPUT tag is used to specify where the man pages will be put. If a) N
+(# relative path is entered the value of OUTPUT_DIRECTORY will be put in front of) N
+(# it. A directory man3 will be created inside the directory specified by) N
+(# MAN_OUTPUT.) N
+(# The default directory is: man.) N
+(# This tag requires that the tag GENERATE_MAN is set to YES.) N
+() N
+(MAN_OUTPUT             = man) N
+() N
+(# The MAN_EXTENSION tag determines the extension that is added to the generated) N
+(# man pages. In case the manual section does not start with a number, the number) N
+(# 3 is prepended. The dot \(.\) at the beginning of the MAN_EXTENSION tag is) N
+(# optional.) N
+(# The default value is: .3.) N
+(# This tag requires that the tag GENERATE_MAN is set to YES.) N
+() N
+(MAN_EXTENSION          = .3) N
+() N
+(# The MAN_SUBDIR tag determines the name of the directory created within) N
+(# MAN_OUTPUT in which the man pages are placed. If defaults to man followed by) N
+(# MAN_EXTENSION with the initial . removed.) N
+(# This tag requires that the tag GENERATE_MAN is set to YES.) N
+() N
+(MAN_SUBDIR             =) N
+() N
+(# If the MAN_LINKS tag is set to YES and doxygen generates man output, then it) N
+(# will generate one additional man file for each entity documented in the real) N
+(# man page\(s\). These additional files only source the real man page, but without) N
+(# them the man command would be unable to find the correct page.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag GENERATE_MAN is set to YES.) N
+() N
+(MAN_LINKS              = NO) N
+() N
+(#---------------------------------------------------------------------------) N
+(# Configuration options related to the XML output) N
+(#---------------------------------------------------------------------------) N
+() N
+(# If the GENERATE_XML tag is set to YES, doxygen will generate an XML file that) N
+(# captures the structure of the code including all documentation.) N
+(# The default value is: NO.) N
+() N
+(GENERATE_XML           = NO) N
+() N
+(# The XML_OUTPUT tag is used to specify where the XML pages will be put. If a) N
+(# relative path is entered the value of OUTPUT_DIRECTORY will be put in front of) N
+(# it.) N
+(# The default directory is: xml.) N
+(# This tag requires that the tag GENERATE_XML is set to YES.) N
+() N
+(XML_OUTPUT             = xml) N
+() N
+(# If the XML_PROGRAMLISTING tag is set to YES, doxygen will dump the program) N
+(# listings \(including syntax highlighting and cross-referencing information\) to) N
+(Doxyfile) (Page 34/43) (maj 29, 23 10:43) title
+border
+grestore
+(Printed by Davjep) rhead
+(Doxyfile) (17/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (35-36) 18
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# the XML output. Note that enabling this will significantly increase the size) p n
+(# of the XML output.) N
+(# The default value is: YES.) N
+(# This tag requires that the tag GENERATE_XML is set to YES.) N
+() N
+(XML_PROGRAMLISTING     = YES) N
+() N
+(# If the XML_NS_MEMB_FILE_SCOPE tag is set to YES, doxygen will include) N
+(# namespace members in file scope as well, matching the HTML output.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag GENERATE_XML is set to YES.) N
+() N
+(XML_NS_MEMB_FILE_SCOPE = NO) N
+() N
+(#---------------------------------------------------------------------------) N
+(# Configuration options related to the DOCBOOK output) N
+(#---------------------------------------------------------------------------) N
+() N
+(# If the GENERATE_DOCBOOK tag is set to YES, doxygen will generate Docbook files) N
+(# that can be used to generate PDF.) N
+(# The default value is: NO.) N
+() N
+(GENERATE_DOCBOOK       = NO) N
+() N
+(# The DOCBOOK_OUTPUT tag is used to specify where the Docbook pages will be put.) N
+(# If a relative path is entered the value of OUTPUT_DIRECTORY will be put in) N
+(# front of it.) N
+(# The default directory is: docbook.) N
+(# This tag requires that the tag GENERATE_DOCBOOK is set to YES.) N
+() N
+(DOCBOOK_OUTPUT         = docbook) N
+() N
+(# If the DOCBOOK_PROGRAMLISTING tag is set to YES, doxygen will include the) N
+(# program listings \(including syntax highlighting and cross-referencing) N
+(# information\) to the DOCBOOK output. Note that enabling this will significantly) N
+(# increase the size of the DOCBOOK output.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag GENERATE_DOCBOOK is set to YES.) N
+() N
+(DOCBOOK_PROGRAMLISTING = NO) N
+() N
+(#---------------------------------------------------------------------------) N
+(# Configuration options for the AutoGen Definitions output) N
+(#---------------------------------------------------------------------------) N
+() N
+(# If the GENERATE_AUTOGEN_DEF tag is set to YES, doxygen will generate an) N
+(# AutoGen Definitions \(see http://autogen.sourceforge.net/\) file that captures) N
+(# the structure of the code including all documentation. Note that this feature) N
+(# is still experimental and incomplete at the moment.) N
+(# The default value is: NO.) N
+() N
+(GENERATE_AUTOGEN_DEF   = NO) N
+() N
+(#---------------------------------------------------------------------------) N
+(# Configuration options related to the Perl module output) N
+(#---------------------------------------------------------------------------) N
+() N
+(# If the GENERATE_PERLMOD tag is set to YES, doxygen will generate a Perl module) N
+(# file that captures the structure of the code including all documentation.) N
+(#) N
+(# Note that this feature is still experimental and incomplete at the moment.) N
+(# The default value is: NO.) N
+(Doxyfile) (Page 35/43) (maj 29, 23 10:43) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p n
+(GENERATE_PERLMOD       = NO) N
+() N
+(# If the PERLMOD_LATEX tag is set to YES, doxygen will generate the necessary) N
+(# Makefile rules, Perl scripts and LaTeX code to be able to generate PDF and DVI) N
+(# output from the Perl module output.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag GENERATE_PERLMOD is set to YES.) N
+() N
+(PERLMOD_LATEX          = NO) N
+() N
+(# If the PERLMOD_PRETTY tag is set to YES, the Perl module output will be nicely) N
+(# formatted so it can be parsed by a human reader. This is useful if you want to) N
+(# understand what is going on. On the other hand, if this tag is set to NO, the) N
+(# size of the Perl module output will be much smaller and Perl will parse it) N
+(# just the same.) N
+(# The default value is: YES.) N
+(# This tag requires that the tag GENERATE_PERLMOD is set to YES.) N
+() N
+(PERLMOD_PRETTY         = YES) N
+() N
+(# The names of the make variables in the generated doxyrules.make file are) N
+(# prefixed with the string contained in PERLMOD_MAKEVAR_PREFIX. This is useful) N
+(# so different doxyrules.make files included by the same Makefile don't) N
+(# overwrite each other's variables.) N
+(# This tag requires that the tag GENERATE_PERLMOD is set to YES.) N
+() N
+(PERLMOD_MAKEVAR_PREFIX =) N
+() N
+(#---------------------------------------------------------------------------) N
+(# Configuration options related to the preprocessor) N
+(#---------------------------------------------------------------------------) N
+() N
+(# If the ENABLE_PREPROCESSING tag is set to YES, doxygen will evaluate all) N
+(# C-preprocessor directives found in the sources and include files.) N
+(# The default value is: YES.) N
+() N
+(ENABLE_PREPROCESSING   = YES) N
+() N
+(# If the MACRO_EXPANSION tag is set to YES, doxygen will expand all macro names) N
+(# in the source code. If set to NO, only conditional compilation will be) N
+(# performed. Macro expansion can be done in a controlled way by setting) N
+(# EXPAND_ONLY_PREDEF to YES.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag ENABLE_PREPROCESSING is set to YES.) N
+() N
+(MACRO_EXPANSION        = NO) N
+() N
+(# If the EXPAND_ONLY_PREDEF and MACRO_EXPANSION tags are both set to YES then) N
+(# the macro expansion is limited to the macros specified with the PREDEFINED and) N
+(# EXPAND_AS_DEFINED tags.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag ENABLE_PREPROCESSING is set to YES.) N
+() N
+(EXPAND_ONLY_PREDEF     = NO) N
+() N
+(# If the SEARCH_INCLUDES tag is set to YES, the include files in the) N
+(# INCLUDE_PATH will be searched if a #include is found.) N
+(# The default value is: YES.) N
+(# This tag requires that the tag ENABLE_PREPROCESSING is set to YES.) N
+() N
+(SEARCH_INCLUDES        = YES) N
+(Doxyfile) (Page 36/43) (maj 29, 23 10:43) title
+border
+grestore
+(Printed by Davjep) rhead
+(Doxyfile) (18/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (37-38) 19
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p n
+(# The INCLUDE_PATH tag can be used to specify one or more directories that) N
+(# contain include files that are not input files but should be processed by the) N
+(# preprocessor.) N
+(# This tag requires that the tag SEARCH_INCLUDES is set to YES.) N
+() N
+(INCLUDE_PATH           =) N
+() N
+(# You can use the INCLUDE_FILE_PATTERNS tag to specify one or more wildcard) N
+(# patterns \(like *.h and *.hpp\) to filter out the header-files in the) N
+(# directories. If left blank, the patterns specified with FILE_PATTERNS will be) N
+(# used.) N
+(# This tag requires that the tag ENABLE_PREPROCESSING is set to YES.) N
+() N
+(INCLUDE_FILE_PATTERNS  =) N
+() N
+(# The PREDEFINED tag can be used to specify one or more macro names that are) N
+(# defined before the preprocessor is started \(similar to the -D option of e.g.) N
+(# gcc\). The argument of the tag is a list of macros of the form: name or) N
+(# name=definition \(no spaces\). If the definition and the "=" are omitted, "=1") N
+(# is assumed. To prevent a macro definition from being undefined via #undef or) N
+(# recursively expanded use the := operator instead of the = operator.) N
+(# This tag requires that the tag ENABLE_PREPROCESSING is set to YES.) N
+() N
+(PREDEFINED             =) N
+() N
+(# If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this) N
+(# tag can be used to specify a list of macro names that should be expanded. The) N
+(# macro definition that is found in the sources will be used. Use the PREDEFINED) N
+(# tag if you want to use a different macro definition that overrules the) N
+(# definition found in the source code.) N
+(# This tag requires that the tag ENABLE_PREPROCESSING is set to YES.) N
+() N
+(EXPAND_AS_DEFINED      =) N
+() N
+(# If the SKIP_FUNCTION_MACROS tag is set to YES then doxygen's preprocessor will) N
+(# remove all references to function-like macros that are alone on a line, have) N
+(# an all uppercase name, and do not end with a semicolon. Such function macros) N
+(# are typically used for boiler-plate code, and will confuse the parser if not) N
+(# removed.) N
+(# The default value is: YES.) N
+(# This tag requires that the tag ENABLE_PREPROCESSING is set to YES.) N
+() N
+(SKIP_FUNCTION_MACROS   = YES) N
+() N
+(#---------------------------------------------------------------------------) N
+(# Configuration options related to external references) N
+(#---------------------------------------------------------------------------) N
+() N
+(# The TAGFILES tag can be used to specify one or more tag files. For each tag) N
+(# file the location of the external documentation should be added. The format of) N
+(# a tag file without this location is as follows:) N
+(# TAGFILES = file1 file2 ...) N
+(# Adding location for the tag files is done as follows:) N
+(# TAGFILES = file1=loc1 "file2 = loc2" ...) N
+(# where loc1 and loc2 can be relative or absolute paths or URLs. See the) N
+(# section "Linking to external documentation" for more information about the use) N
+(# of tag files.) N
+(# Note: Each tag file must have a unique name \(where the name does NOT include) N
+(# the path\). If a tag file is not located in the directory in which doxygen is) N
+(# run, you must also specify the path to the tagfile here.) N
+() N
+(Doxyfile) (Page 37/43) (maj 29, 23 10:43) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(TAGFILES               =) p n
+() N
+(# When a file name is specified after GENERATE_TAGFILE, doxygen will create a) N
+(# tag file that is based on the input files it reads. See section "Linking to) N
+(# external documentation" for more information about the usage of tag files.) N
+() N
+(GENERATE_TAGFILE       =) N
+() N
+(# If the ALLEXTERNALS tag is set to YES, all external class will be listed in) N
+(# the class index. If set to NO, only the inherited external classes will be) N
+(# listed.) N
+(# The default value is: NO.) N
+() N
+(ALLEXTERNALS           = NO) N
+() N
+(# If the EXTERNAL_GROUPS tag is set to YES, all external groups will be listed) N
+(# in the modules index. If set to NO, only the current project's groups will be) N
+(# listed.) N
+(# The default value is: YES.) N
+() N
+(EXTERNAL_GROUPS        = YES) N
+() N
+(# If the EXTERNAL_PAGES tag is set to YES, all external pages will be listed in) N
+(# the related pages index. If set to NO, only the current project's pages will) N
+(# be listed.) N
+(# The default value is: YES.) N
+() N
+(EXTERNAL_PAGES         = YES) N
+() N
+(#---------------------------------------------------------------------------) N
+(# Configuration options related to the dot tool) N
+(#---------------------------------------------------------------------------) N
+() N
+(# If the CLASS_DIAGRAMS tag is set to YES, doxygen will generate a class diagram) N
+(# \(in HTML and LaTeX\) for classes with base or super classes. Setting the tag to) N
+(# NO turns the diagrams off. Note that this option also works with HAVE_DOT) N
+(# disabled, but it is recommended to install and use dot, since it yields more) N
+(# powerful graphs.) N
+(# The default value is: YES.) N
+() N
+(CLASS_DIAGRAMS         = YES) N
+() N
+(# You can include diagrams made with dia in doxygen documentation. Doxygen will) N
+(# then run dia to produce the diagram and insert it in the documentation. The) N
+(# DIA_PATH tag allows you to specify the directory where the dia binary resides.) N
+(# If left empty dia is assumed to be found in the default search path.) N
+() N
+(DIA_PATH               =) N
+() N
+(# If set to YES the inheritance and collaboration graphs will hide inheritance) N
+(# and usage relations if the target is undocumented or is not a class.) N
+(# The default value is: YES.) N
+() N
+(HIDE_UNDOC_RELATIONS   = YES) N
+() N
+(# If you set the HAVE_DOT tag to YES then doxygen will assume the dot tool is) N
+(# available from the path. This tool is part of Graphviz \(see:) N
+(# http://www.graphviz.org/\), a graph visualization toolkit from AT&T and Lucent) N
+(# Bell Labs. The other options in this section have no effect if this option is) N
+(# set to NO) N
+(# The default value is: YES.) N
+() N
+(Doxyfile) (Page 38/43) (maj 29, 23 10:43) title
+border
+grestore
+(Printed by Davjep) rhead
+(Doxyfile) (19/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (39-40) 20
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(HAVE_DOT               = YES) p n
+() N
+(# The DOT_NUM_THREADS specifies the number of dot invocations doxygen is allowed) N
+(# to run in parallel. When set to 0 doxygen will base this on the number of) N
+(# processors available in the system. You can set it explicitly to a value) N
+(# larger than 0 to get control over the balance between CPU load and processing) N
+(# speed.) N
+(# Minimum value: 0, maximum value: 32, default value: 0.) N
+(# This tag requires that the tag HAVE_DOT is set to YES.) N
+() N
+(DOT_NUM_THREADS        = 0) N
+() N
+(# When you want a differently looking font in the dot files that doxygen) N
+(# generates you can specify the font name using DOT_FONTNAME. You need to make) N
+(# sure dot is able to find the font, which can be done by putting it in a) N
+(# standard location or by setting the DOTFONTPATH environment variable or by) N
+(# setting DOT_FONTPATH to the directory containing the font.) N
+(# The default value is: Helvetica.) N
+(# This tag requires that the tag HAVE_DOT is set to YES.) N
+() N
+(DOT_FONTNAME           = Helvetica) N
+() N
+(# The DOT_FONTSIZE tag can be used to set the size \(in points\) of the font of) N
+(# dot graphs.) N
+(# Minimum value: 4, maximum value: 24, default value: 10.) N
+(# This tag requires that the tag HAVE_DOT is set to YES.) N
+() N
+(DOT_FONTSIZE           = 10) N
+() N
+(# By default doxygen will tell dot to use the default font as specified with) N
+(# DOT_FONTNAME. If you specify a different font using DOT_FONTNAME you can set) N
+(# the path where dot can find it using this tag.) N
+(# This tag requires that the tag HAVE_DOT is set to YES.) N
+() N
+(DOT_FONTPATH           =) N
+() N
+(# If the CLASS_GRAPH tag is set to YES then doxygen will generate a graph for) N
+(# each documented class showing the direct and indirect inheritance relations.) N
+(# Setting this tag to YES will force the CLASS_DIAGRAMS tag to NO.) N
+(# The default value is: YES.) N
+(# This tag requires that the tag HAVE_DOT is set to YES.) N
+() N
+(CLASS_GRAPH            = YES) N
+() N
+(# If the COLLABORATION_GRAPH tag is set to YES then doxygen will generate a) N
+(# graph for each documented class showing the direct and indirect implementation) N
+(# dependencies \(inheritance, containment, and class references variables\) of the) N
+(# class with other documented classes.) N
+(# The default value is: YES.) N
+(# This tag requires that the tag HAVE_DOT is set to YES.) N
+() N
+(COLLABORATION_GRAPH    = YES) N
+() N
+(# If the GROUP_GRAPHS tag is set to YES then doxygen will generate a graph for) N
+(# groups, showing the direct groups dependencies.) N
+(# The default value is: YES.) N
+(# This tag requires that the tag HAVE_DOT is set to YES.) N
+() N
+(GROUP_GRAPHS           = YES) N
+() N
+(# If the UML_LOOK tag is set to YES, doxygen will generate inheritance and) N
+(# collaboration diagrams in a style similar to the OMG's Unified Modeling) N
+(Doxyfile) (Page 39/43) (maj 29, 23 10:43) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# Language.) p n
+(# The default value is: NO.) N
+(# This tag requires that the tag HAVE_DOT is set to YES.) N
+() N
+(UML_LOOK               = NO) N
+() N
+(# If the UML_LOOK tag is enabled, the fields and methods are shown inside the) N
+(# class node. If there are many fields or methods and many nodes the graph may) N
+(# become too big to be useful. The UML_LIMIT_NUM_FIELDS threshold limits the) N
+(# number of items for each type to make the size more manageable. Set this to 0) N
+(# for no limit. Note that the threshold may be exceeded by 50% before the limit) N
+(# is enforced. So when you set the threshold to 10, up to 15 fields may appear,) N
+(# but if the number exceeds 15, the total amount of fields shown is limited to) N
+(# 10.) N
+(# Minimum value: 0, maximum value: 100, default value: 10.) N
+(# This tag requires that the tag UML_LOOK is set to YES.) N
+() N
+(UML_LIMIT_NUM_FIELDS   = 10) N
+() N
+(# If the DOT_UML_DETAILS tag is set to NO, doxygen will show attributes and) N
+(# methods without types and arguments in the UML graphs. If the DOT_UML_DETAILS) N
+(# tag is set to YES, doxygen will add type and arguments for attributes and) N
+(# methods in the UML graphs. If the DOT_UML_DETAILS tag is set to NONE, doxygen) N
+(# will not generate fields with class member information in the UML graphs. The) N
+(# class diagrams will look similar to the default class diagrams but using UML) N
+(# notation for the relationships.) N
+(# Possible values are: NO, YES and NONE.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag UML_LOOK is set to YES.) N
+() N
+(DOT_UML_DETAILS        = NO) N
+() N
+(# The DOT_WRAP_THRESHOLD tag can be used to set the maximum number of characters) N
+(# to display on a single line. If the actual line length exceeds this threshold) N
+(# significantly it will wrapped across multiple lines. Some heuristics are apply) N
+(# to avoid ugly line breaks.) N
+(# Minimum value: 0, maximum value: 1000, default value: 17.) N
+(# This tag requires that the tag HAVE_DOT is set to YES.) N
+() N
+(DOT_WRAP_THRESHOLD     = 17) N
+() N
+(# If the TEMPLATE_RELATIONS tag is set to YES then the inheritance and) N
+(# collaboration graphs will show the relations between templates and their) N
+(# instances.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag HAVE_DOT is set to YES.) N
+() N
+(TEMPLATE_RELATIONS     = NO) N
+() N
+(# If the INCLUDE_GRAPH, ENABLE_PREPROCESSING and SEARCH_INCLUDES tags are set to) N
+(# YES then doxygen will generate a graph for each documented file showing the) N
+(# direct and indirect include dependencies of the file with other documented) N
+(# files.) N
+(# The default value is: YES.) N
+(# This tag requires that the tag HAVE_DOT is set to YES.) N
+() N
+(INCLUDE_GRAPH          = YES) N
+() N
+(# If the INCLUDED_BY_GRAPH, ENABLE_PREPROCESSING and SEARCH_INCLUDES tags are) N
+(# set to YES then doxygen will generate a graph for each documented file showing) N
+(# the direct and indirect include dependencies of the file with other documented) N
+(# files.) N
+(Doxyfile) (Page 40/43) (maj 29, 23 10:43) title
+border
+grestore
+(Printed by Davjep) rhead
+(Doxyfile) (20/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (41-42) 21
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# The default value is: YES.) p n
+(# This tag requires that the tag HAVE_DOT is set to YES.) N
+() N
+(INCLUDED_BY_GRAPH      = YES) N
+() N
+(# If the CALL_GRAPH tag is set to YES then doxygen will generate a call) N
+(# dependency graph for every global function or class method.) N
+(#) N
+(# Note that enabling this option will significantly increase the time of a run.) N
+(# So in most cases it will be better to enable call graphs for selected) N
+(# functions only using the \\callgraph command. Disabling a call graph can be) N
+(# accomplished by means of the command \\hidecallgraph.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag HAVE_DOT is set to YES.) N
+() N
+(CALL_GRAPH             = YES) N
+() N
+(# If the CALLER_GRAPH tag is set to YES then doxygen will generate a caller) N
+(# dependency graph for every global function or class method.) N
+(#) N
+(# Note that enabling this option will significantly increase the time of a run.) N
+(# So in most cases it will be better to enable caller graphs for selected) N
+(# functions only using the \\callergraph command. Disabling a caller graph can be) N
+(# accomplished by means of the command \\hidecallergraph.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag HAVE_DOT is set to YES.) N
+() N
+(CALLER_GRAPH           = YES) N
+() N
+(# If the GRAPHICAL_HIERARCHY tag is set to YES then doxygen will graphical) N
+(# hierarchy of all classes instead of a textual one.) N
+(# The default value is: YES.) N
+(# This tag requires that the tag HAVE_DOT is set to YES.) N
+() N
+(GRAPHICAL_HIERARCHY    = YES) N
+() N
+(# If the DIRECTORY_GRAPH tag is set to YES then doxygen will show the) N
+(# dependencies a directory has on other directories in a graphical way. The) N
+(# dependency relations are determined by the #include relations between the) N
+(# files in the directories.) N
+(# The default value is: YES.) N
+(# This tag requires that the tag HAVE_DOT is set to YES.) N
+() N
+(DIRECTORY_GRAPH        = YES) N
+() N
+(# The DOT_IMAGE_FORMAT tag can be used to set the image format of the images) N
+(# generated by dot. For an explanation of the image formats see the section) N
+(# output formats in the documentation of the dot tool \(Graphviz \(see:) N
+(# http://www.graphviz.org/\)\).) N
+(# Note: If you choose svg you need to set HTML_FILE_EXTENSION to xhtml in order) N
+(# to make the SVG files visible in IE 9+ \(other browsers do not have this) N
+(# requirement\).) N
+(# Possible values are: png, png:cairo, png:cairo:cairo, png:cairo:gd, png:gd,) N
+(# png:gd:gd, jpg, jpg:cairo, jpg:cairo:gd, jpg:gd, jpg:gd:gd, gif, gif:cairo,) N
+(# gif:cairo:gd, gif:gd, gif:gd:gd, svg, png:gd, png:gd:gd, png:cairo,) N
+(# png:cairo:gd, png:cairo:cairo, png:cairo:gdiplus, png:gdiplus and) N
+(# png:gdiplus:gdiplus.) N
+(# The default value is: png.) N
+(# This tag requires that the tag HAVE_DOT is set to YES.) N
+() N
+(DOT_IMAGE_FORMAT       = png) N
+() N
+(Doxyfile) (Page 41/43) (maj 29, 23 10:43) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# If DOT_IMAGE_FORMAT is set to svg, then this option can be set to YES to) p n
+(# enable generation of interactive SVG images that allow zooming and panning.) N
+(#) N
+(# Note that this requires a modern browser other than Internet Explorer. Tested) N
+(# and working are Firefox, Chrome, Safari, and Opera.) N
+(# Note: For IE 9+ you need to set HTML_FILE_EXTENSION to xhtml in order to make) N
+(# the SVG files visible. Older versions of IE do not have SVG support.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag HAVE_DOT is set to YES.) N
+() N
+(INTERACTIVE_SVG        = NO) N
+() N
+(# The DOT_PATH tag can be used to specify the path where the dot tool can be) N
+(# found. If left blank, it is assumed the dot tool can be found in the path.) N
+(# This tag requires that the tag HAVE_DOT is set to YES.) N
+() N
+(DOT_PATH               =) N
+() N
+(# The DOTFILE_DIRS tag can be used to specify one or more directories that) N
+(# contain dot files that are included in the documentation \(see the \\dotfile) N
+(# command\).) N
+(# This tag requires that the tag HAVE_DOT is set to YES.) N
+() N
+(DOTFILE_DIRS           =) N
+() N
+(# The MSCFILE_DIRS tag can be used to specify one or more directories that) N
+(# contain msc files that are included in the documentation \(see the \\mscfile) N
+(# command\).) N
+() N
+(MSCFILE_DIRS           =) N
+() N
+(# The DIAFILE_DIRS tag can be used to specify one or more directories that) N
+(# contain dia files that are included in the documentation \(see the \\diafile) N
+(# command\).) N
+() N
+(DIAFILE_DIRS           =) N
+() N
+(# When using plantuml, the PLANTUML_JAR_PATH tag should be used to specify the) N
+(# path where java can find the plantuml.jar file. If left blank, it is assumed) N
+(# PlantUML is not used or called during a preprocessing step. Doxygen will) N
+(# generate a warning when it encounters a \\startuml command in this case and) N
+(# will not generate output for the diagram.) N
+() N
+(PLANTUML_JAR_PATH      =) N
+() N
+(# When using plantuml, the PLANTUML_CFG_FILE tag can be used to specify a) N
+(# configuration file for plantuml.) N
+() N
+(PLANTUML_CFG_FILE      =) N
+() N
+(# When using plantuml, the specified paths are searched for files specified by) N
+(# the !include statement in a plantuml block.) N
+() N
+(PLANTUML_INCLUDE_PATH  =) N
+() N
+(# The DOT_GRAPH_MAX_NODES tag can be used to set the maximum number of nodes) N
+(# that will be shown in the graph. If the number of nodes in a graph becomes) N
+(# larger than this value, doxygen will truncate the graph, which is visualized) N
+(# by representing a node as a red box. Note that doxygen if the number of direct) N
+(# children of the root node in a graph is already larger than) N
+(# DOT_GRAPH_MAX_NODES then the graph will not be shown at all. Also note that) N
+(# the size of a graph can be further restricted by MAX_DOT_GRAPH_DEPTH.) N
+(Doxyfile) (Page 42/43) (maj 29, 23 10:43) title
+border
+grestore
+(Printed by Davjep) rhead
+(Doxyfile) (21/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (43) 22
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(# Minimum value: 0, maximum value: 10000, default value: 50.) p n
+(# This tag requires that the tag HAVE_DOT is set to YES.) N
+() N
+(DOT_GRAPH_MAX_NODES    = 50) N
+() N
+(# The MAX_DOT_GRAPH_DEPTH tag can be used to set the maximum depth of the graphs) N
+(# generated by dot. A depth value of 3 means that only nodes reachable from the) N
+(# root by following a path via at most 3 edges will be shown. Nodes that lay) N
+(# further from the root node will be omitted. Note that setting this option to 1) N
+(# or 2 may greatly reduce the computation time needed for large code bases. Also) N
+(# note that the size of a graph can be further restricted by) N
+(# DOT_GRAPH_MAX_NODES. Using a depth of 0 means no depth restriction.) N
+(# Minimum value: 0, maximum value: 1000, default value: 0.) N
+(# This tag requires that the tag HAVE_DOT is set to YES.) N
+() N
+(MAX_DOT_GRAPH_DEPTH    = 0) N
+() N
+(# Set the DOT_TRANSPARENT tag to YES to generate images with a transparent) N
+(# background. This is disabled by default, because dot on Windows does not seem) N
+(# to support this out of the box.) N
+(#) N
+(# Warning: Depending on the platform used, enabling this option may lead to) N
+(# badly anti-aliased labels on the edges of a graph \(i.e. they become hard to) N
+(# read\).) N
+(# The default value is: NO.) N
+(# This tag requires that the tag HAVE_DOT is set to YES.) N
+() N
+(DOT_TRANSPARENT        = NO) N
+() N
+(# Set the DOT_MULTI_TARGETS tag to YES to allow dot to generate multiple output) N
+(# files in one run \(i.e. multiple -o and -T options on the command line\). This) N
+(# makes dot run faster, but since only newer versions of dot \(>1.8.10\) support) N
+(# this, this feature is disabled by default.) N
+(# The default value is: NO.) N
+(# This tag requires that the tag HAVE_DOT is set to YES.) N
+() N
+(DOT_MULTI_TARGETS      = NO) N
+() N
+(# If the GENERATE_LEGEND tag is set to YES doxygen will generate a legend page) N
+(# explaining the meaning of the various boxes and arrows in the dot generated) N
+(# graphs.) N
+(# The default value is: YES.) N
+(# This tag requires that the tag HAVE_DOT is set to YES.) N
+() N
+(GENERATE_LEGEND        = YES) N
+() N
+(# If the DOT_CLEANUP tag is set to YES, doxygen will remove the intermediate) N
+(# files that are used to generate the various graphs.) N
+(#) N
+(# Note: This setting is not only used for dot files but also for msc and) N
+(# plantuml temporary files.) N
+(# The default value is: YES.) N
+() N
+(DOT_CLEANUP            = YES) N
+(Doxyfile) (Page 43/43) (maj 29, 23 10:43) title
+border
+grestore
+(Printed by Davjep) rhead
+(Doxyfile) (22/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 23
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(// Programmed by Sven R\303\266nnb\303\244ck) c n
+() p n
+(#include) K
+( ") p
+(libresistance.h) str
+(") p n
+() N
+(int) k
+( nFindE12resistances\( ) p
+(float) k
+( fOrigResistance, ) p
+(int) k
+( nMaxResistances, ) p
+(float) k
+( *pfRe) p n
+(sArray\)) N
+({) N
+() S 8 T () S
+(int) k
+( nResistances=0;) p n
+() S 8 T () S
+(if) K
+(\(fOrigResistance>0.0f && pfResArray\){) p n
+() S 8 T () S 16 T () S
+(const) K
+( ) p
+(float) k
+( afRES[]={100.0f, 120.0f, 150.0f, 180.0f, 220.0f, 270) p n
+(.0f, 330.0f, 390.0f, 470.0f, 560.0f, 680.0f, 820.0f};) N
+() S 8 T () N
+() S 8 T () S 16 T () S
+(float) k
+( fExp=1000000.0f;) p n
+() S 8 T () S 16 T () S
+(while) K
+(\(\(nResistances<nMaxResistances\) && \(fExp>=0.001f\)\){) p n
+() S 8 T () S 16 T () S 24 T () S
+(for) K
+( \() p
+(int) k
+( n=11;n>=0 && nResistances<nMaxResistances;n--\){) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(float) k
+( fR = fExp*afRES[n];) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(//printf\("Test: %f %d\\n",fR,nResistances\);) c n
+() p 8 T () S 16 T () S 24 T () S 32 T () S
+(if) K
+(\(fOrigResistance - fR>=0.0f\){) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (*\(pfResArray++\) = fR;) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (fOrigResistance -= fR;) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (nResistances++;) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (n++;) N
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T () S 24 T (fExp *=0.1f;) S 40 T () N
+() S 8 T () S 16 T (}) N
+() S 8 T (}) N
+() S 8 T () S
+(return) K
+( nResistances;) p n
+(}) N
+() N
+(libcomponent.c) (Page 1/1) (nov 24, 20 13:24) title
+border
+grestore
+(Printed by Davjep) rhead
+(libcomponent.c) (23/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 24
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(// Programmed by Sven R\303\266nnb\303\244ck) c n
+() p n
+(#include) K
+( ") p
+(libpower.h) str
+(") p n
+(#include) K
+( <math.h>) p n
+() N
+(float) k
+( fCalcPowerR\() p
+(float) k
+( fVolt, ) p
+(float) k
+( fResistance\)) p n
+({) N
+() S 8 T () S
+(float) k
+( fPower = NAN;) p n
+() S 8 T () S
+(if) K
+(\(fResistance>0.0f\){) p n
+() S 8 T () S 16 T (fPower=\(fVolt*fVolt\)/fResistance;) N
+() S 8 T (}) N
+() S 8 T () S
+(return) K
+( fPower;) p n
+(}) N
+() N
+() N
+(float) k
+( fCalcPowerI\() p
+(float) k
+( fVolt, ) p
+(float) k
+( fCurrent\)) p n
+({) N
+() S 8 T () S
+(float) k
+( fPower = fVolt*fCurrent;) p n
+() S 8 T (fPower = fabs\( fPower\);) N
+() S 8 T () S
+(return) K
+( fPower;) p n
+(}) S 8 T () N
+() N
+(libpower.c) (Page 1/1) (nov 24, 20 13:25) title
+border
+grestore
+(Printed by Davjep) rhead
+(libpower.c) (24/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 25
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(// Programmed by Sven R\303\266nnb\303\244ck) c n
+() p n
+(#include) K
+( ") p
+(libresistance.h) str
+(") p n
+(#include) K
+( <ctype.h>) p n
+(#include) K
+( <math.h>) p n
+() N
+(float) k
+( fCalcResistance\() p
+(char) k
+( cType, ) p
+(unsigned) k
+( ) p
+(int) k
+( uCount, ) p
+(float) k
+( *pfArray\)) p n
+({) N
+() S 8 T () S
+(float) k
+( fOhm = -1.0f;) p n
+() S 8 T () S
+(if) K
+(\(pfArray && uCount>0\){) p n
+() S 8 T () S 16 T (fOhm=0.0f;) N
+() S 8 T () S 16 T () S
+(switch) K
+(\( toupper\(cType\)\)) p n
+() S 8 T () S 16 T ({) N
+() S 8 T () S 16 T () S 24 T () S
+(case) K
+( ') p
+(S) str
+(':) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(while) K
+(\(uCount-- >0\){) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (fOhm += *\(pfArray++\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(break) K
+(;) p n
+() S 8 T () S 16 T () S 24 T () N
+() S 8 T () S 16 T () S 24 T () S
+(case) K
+( ') p
+(P) str
+(':) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(while) K
+(\(uCount-->0\){) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S
+(float) k
+( f= *\(pfArray++\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S
+(if) K
+(\(f==0.0\){) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T (fOhm = 0.0f;) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T () S
+(break) K
+(;) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (}) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S
+(else) K
+( ) p
+(if) K
+(\(f<0.0f\){) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T (fOhm = -1.0f;) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T () S
+(break) K
+(;) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (}) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (fOhm += 1.0f/f;) N
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(if) K
+(\(fOhm>0.0f\){) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (fOhm = 1.0f/fOhm;) N
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(break) K
+(;) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () N
+() S 8 T () S 16 T () S 24 T () S
+(default) K
+(:) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (fOhm = -1.0f;) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(break) K
+(;) p n
+() S 8 T () S 16 T (}) N
+() S 8 T (}) N
+() S 8 T () S
+(return) K
+( fOhm;) p n
+(}) N
+() N
+() N
+() N
+(libresistance.c) (Page 1/1) (nov 24, 20 13:25) title
+border
+grestore
+(Printed by Davjep) rhead
+(libresistance.c) (25/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1-2) 26
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(/**) c n
+() N
+() S 8 T (@file main.c) N
+() S 8 T (@brief Programfil som inneh\303\245ller programmets huvudfunktion.) N
+() S 8 T (@author Sven R\303\266nnb\303\244ck) N
+() S 8 T (*/) N
+() p n
+(#include) K
+( ") p
+(libcomponent.h) str
+(") p n
+(#include) K
+( ") p
+(libpower.h) str
+(") p n
+(#include) K
+( ") p
+(libresistance.h) str
+(") p n
+(#include) K
+( <math.h>) p n
+(#include) K
+( <stdio.h>) p n
+(#include) K
+( <stdlib.h>) p n
+(#include) K
+( <string.h>) p n
+() N
+(/**) c n
+() S 8 T (@brief Huvudfunktionen f\303\266r programmet.) N
+() S 8 T (Huvudfunktionen anv\303\244nds f\303\266r att k\303\266ra programmet och ber\303\244kna resistan) N
+(sv\303\244rden baserat p\303\245) N
+() S 8 T (anv\303\244ndarens argument. Programmet tar emot tv\303\245 argument: <v\303\244rde> och <) N
+(resistorer>.) N
+() S 8 T (Om inga argument anges anv\303\244nds standardv\303\244rdena 2020.0f f\303\266r <v\303\244rde> o) N
+(ch 3 f\303\266r <resistorer>.) N
+() N
+() S 8 T (@param nArgv Antalet argument som skickas till programmet.) N
+() S 8 T (@param pvcArgc En array av str\303\244ngar som representerar de argument som s) N
+(kickas till programmet.) N
+() S 8 T (*/) N
+() p n
+(void) k
+( main\() p
+(int) k
+( nArgv, ) p
+(char) k
+( *pvcArgc[]\)) p n
+({) N
+() S 8 T (printf\(") S
+(Call with arguments <value> <resistors>) str
+("\);) p n
+() S 8 T () S
+(float) k
+( fValue = 2020.0f;) p n
+() N
+() S 8 T () S
+(if) K
+( \(nArgv > 1\)) p n
+() S 8 T ({) N
+() S 8 T () S 16 T (fValue = atof\(pvcArgc[1]\);) N
+() S 8 T (}) N
+() S 8 T () S
+(int) k
+( nResistors = 3;) p n
+() S 8 T () S
+(if) K
+( \(nArgv > 2\)) p n
+() S 8 T ({) N
+() S 8 T () S 16 T () S
+(int) k
+( n = atoi\(pvcArgc[2]\);) p n
+() S 8 T () S 16 T (nResistors = \(n > nResistors\) ? n : nResistors;) N
+() S 8 T (}) N
+() S 8 T () S
+(if) K
+( \(nResistors >= 3\)) p n
+() S 8 T ({) N
+() S 8 T () S 16 T () S
+(float) k
+( af[nResistors];) p n
+() N
+() S 8 T () S 16 T () S
+(int) k
+( nNr = nFindE12resistances\(fValue, nResistors, &af[0]\);) p n
+() S 8 T () S 16 T () S
+(if) K
+( \(nNr > 0\)) p n
+() S 8 T () S 16 T ({) N
+() S 8 T () S 16 T () S 24 T (printf\(") S
+(\\n\\nNumber of E12 resistances %d for %.0f.\\n) str
+(", nNr, fValue\);) p n
+() S 8 T () S 16 T () S 24 T () S
+(float) k
+( fSum = fCalcResistance\(') p
+(S) str
+(', nNr, &af[0]\);) p n
+() S 8 T () S 16 T () S 24 T (printf\(") S
+(Target value is %.0f Ohm.\\n) str
+(", fValue\);) p n
+() S 8 T () S 16 T () S 24 T (printf\(") S
+(Resistance %.1f is reached with %d components \(E12\).\\n) str
+(", fSum, ) p n
+(nNr\);) N
+() S 8 T () S 16 T () S 24 T () S
+(for) K
+( \() p
+(int) k
+( n = 0; n < nNr; n++\)) p n
+() S 8 T () S 16 T () S 24 T ({) N
+() S 8 T () S 16 T () S 24 T () S 32 T (printf\(") S
+( %.1f) str
+(", af[n]\);) p n
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T () S 24 T (printf\(") S
+(\\n\\n) str
+("\);) p n
+() N
+(main.c) (Page 1/2) (maj 29, 23 10:45) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T () S 16 T () S 24 T () S
+(float) k
+( fVolt = 220.0f;) p n
+() S 8 T () S 16 T () S 24 T (printf\(") S
+(\(220V AC\)\\n) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T (printf\(") S
+(\(U^2/R\)=%.2f Watt\\n) str
+(", fCalcPowerR\(fVolt, fSum\)\);) p n
+() S 8 T () S 16 T () S 24 T (printf\(") S
+(\(U*I\)=%.2f Watt\\n) str
+(", fCalcPowerI\(fVolt, fVolt / fSum\)) p n
+(\);) N
+() S 8 T () S 16 T (}) N
+() S 8 T (}) N
+(}) N
+(main.c) (Page 2/2) (maj 29, 23 10:45) title
+border
+grestore
+(Printed by Davjep) rhead
+(main.c) (26/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 27
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(/**) c n
+() N
+(    @file libcomponent.h) N
+(    @brief  Huvudfil som inneh\303\245ller deklarationen av funktionerna i libcomponen) N
+(t-biblioteket.) N
+(    @author Sven R\303\266nnb\303\244ck) N
+(    */) N
+() p n
+(#ifndef) K
+( LIBCOMPONENT_H) p n
+(#define) K
+( LIBCOMPONENT_H) p n
+() N
+(/**) c n
+() N
+(    @brief Hittar E12-serieresistanser n\303\244rmast det givna ursprungliga resistans) N
+(v\303\244rdet.) N
+(    Denna funktion ber\303\244knar E12-serieresistanser som \303\244r n\303\244rmast det givna urs) N
+(prungliga resistansv\303\244rdet och) N
+(    lagrar dem i den tillhandah\303\245llna arrayen. Antalet resistanser att hitta beg) N
+(r\303\244nsas av det specificerade) N
+(    maximala antalet resistanser.) N
+(    @param fOrigResistance Det ursprungliga resistansv\303\244rdet f\303\266r vilket de n\303\244r) N
+(maste E12-serieresistanserna ska hittas.) N
+(    @param nMaxResistances Det maximala antalet E12-serieresistanser som ska hit) N
+(tas.) N
+(    @param pfResArray En pekare till arrayen d\303\244r de hittade E12-serieresistanse) N
+(rna kommer att lagras.) N
+(    @return Det faktiska antalet E12-serieresistanser som hittades och lagrades ) N
+(i den tillhandah\303\245llna arrayen.) N
+(    */) N
+(int) k
+( nFindE12resistances\() p
+(float) k
+( fOrigResistance, ) p
+(int) k
+( nMaxResistances, ) p
+(float) k
+( *pfRes) p n
+(Array\);) N
+() N
+(#endif) K
+( ) p
+(// LIBCOMPONENT_H) c n
+(libcomponent.h) (Page 1/1) (maj 29, 23 10:46) title
+border
+grestore
+(Printed by Davjep) rhead
+(libcomponent.h) (27/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 28
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(/**) c n
+() N
+(    @file libpower.h) N
+(    @brief Huvudfil som inneh\303\245ller deklarationen av funktionerna i libpower-bib) N
+(lioteket.) N
+(    @author Sven R\303\266nnb\303\244ck) N
+(    */) N
+() p n
+(#ifndef) K
+( LIBPOWER_H) p n
+(#define) K
+( LIBPOWER_H) p n
+() N
+(/**) c n
+() N
+(    @brief Ber\303\244knar effekten i en resistor baserat p\303\245 sp\303\244nning och resistans.) N
+(    Denna funktion ber\303\244knar effekten \(i watt\) i en resistor baserat p\303\245 angiven) N
+( sp\303\244nning) N
+(    och resistans. Resultatet returneras som en flyttalsv\303\244rde.) N
+(    @param fVolt Sp\303\244nningen \303\266ver resistorn \(i volt\).) N
+(    @param fResistance Resistansen hos resistorn \(i ohm\).) N
+(    @return Effekten \(i watt\) i resistorn.) N
+(    */) N
+(float) k
+( fCalcPowerR\() p
+(float) k
+( fVolt, ) p
+(float) k
+( fResistance\);) p n
+() N
+(/**) c n
+() N
+(    @brief Ber\303\244knar effekten i en resistor baserat p\303\245 sp\303\244nning och str\303\266m.) N
+(    Denna funktion ber\303\244knar effekten \(i watt\) i en resistor baserat p\303\245 angiven) N
+( sp\303\244nning) N
+(    och str\303\266m. Resultatet returneras som en flyttalsv\303\244rde.) N
+(    @param fVolt Sp\303\244nningen \303\266ver resistorn \(i volt\).) N
+(    @param fCurrent Str\303\266mmen genom resistorn \(i ampere\).) N
+(    @return Effekten \(i watt\) i resistorn.) N
+(    */) N
+(float) k
+( fCalcPowerI\() p
+(float) k
+( fVolt, ) p
+(float) k
+( fCurrent\);) p n
+() N
+(#endif) K
+( ) p
+(// LIBPOWER_H) c n
+(libpower.h) (Page 1/1) (maj 29, 23 10:46) title
+border
+grestore
+(Printed by Davjep) rhead
+(libpower.h) (28/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 29
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(/**) c n
+( * @file libresistance.h) N
+( * @brief Huvudfil som inneh\303\245ller deklarationen av funktionerna i libresistance) N
+(-biblioteket.) N
+( * @author Sven R\303\266nnb\303\244ck) N
+( */) N
+() p n
+(#ifndef) K
+( __LIBRESISTANCE_H__) p n
+(#define) K
+( __LIBRESISTANCE_H__) p n
+() N
+(/**) c n
+( * @brief Ber\303\244knar den totala resistansen f\303\266r en kombination av resistorer.) N
+( *) N
+( * Denna funktion ber\303\244knar den totala resistansen f\303\266r en kombination av resist) N
+(orer beroende p\303\245) N
+( * resistorernas typ, antal och v\303\244rden. Resultatet returneras som en flyttalsv\303) N
+(\244rde.) N
+( *) N
+( * @param cType     Typen av resistorer \(seriekopplade eller parallellkopplade\).) N
+( * @param uCount    Antalet resistorer i kombinationen.) N
+( * @param pfArray   En pekare till arrayen som inneh\303\245ller resistansv\303\244rdena.) N
+( *) N
+( * @return Den totala resistansen f\303\266r kombinationen av resistorer.) N
+( */) N
+(float) k
+( fCalcResistance\() p
+(char) k
+( cType, ) p
+(unsigned) k
+( ) p
+(int) k
+( uCount, ) p
+(float) k
+( *pfArray\);) p n
+() N
+(#endif) K
+( ) p
+(// __LIBRESISTANCE_H__) c n
+(libresistance.h) (Page 1/1) (maj 29, 23 10:46) title
+border
+grestore
+(Printed by Davjep) rhead
+(libresistance.h) (29/29) (m\303\245ndag maj 29, 2023) footer
+end % of iso1dict
+pagesave restore
+showpage
+
+%%Trailer
+end
+%%EOF
