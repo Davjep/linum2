@@ -25,7 +25,8 @@
     "libcomponent.h": "c",
     "libpower.h": "c",
     "libresistance.h": "c",
-    "stdlib.h": "c"
+    "stdlib.h": "c",
+    "types.h": "c"
   },
   "sonarlint.pathToCompileCommands": "${workspaceFolder}/build/compile_commands.json",
   "C_Cpp.errorSquiggles": "disabled"
